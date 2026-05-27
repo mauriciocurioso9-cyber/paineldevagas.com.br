@@ -2246,6 +2246,8 @@ function parseAIJson(text) {
 // ================================================================
 // INPUT SANITIZATION
 // ================================================================
+
+// sanitize() — para exibição em innerHTML (escapa tudo, use para dados do usuário)
 function sanitize(str) {
   if (typeof str !== 'string') return '';
   return str
@@ -2253,6 +2255,24 @@ function sanitize(str) {
     .replace(/"/g,'&quot;').replace(/'/g,'&#x27;')
     .trim().slice(0, 5000);
 }
+
+// sanitizeAI() — para exibir textos gerados pela IA em innerHTML
+// Escapa apenas tags HTML (<>), preserva apóstrofos e aspas legíveis
+function sanitizeAI(str) {
+  if (typeof str !== 'string') return '';
+  return str
+    .replace(/&(?!amp;|lt;|gt;|quot;|#\w+;)/g, '&amp;')
+    .replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .trim().slice(0, 5000);
+}
+
+// rawText() — para armazenar texto da IA no STATE/DB sem codificar
+// Apenas remove tags HTML perigosas e limita tamanho
+function rawText(str, maxLen) {
+  if (typeof str !== 'string') return '';
+  return str.replace(/<[^>]*>/g, '').trim().slice(0, maxLen || 2000);
+}
+
 function sanitizeEmail(email) {
   return (email || '').toLowerCase().trim().slice(0, 200);
 }
@@ -2843,20 +2863,20 @@ function renderAIReport(c) {
       <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.15em;color:var(--orange);margin-bottom:12px">📝 Respostas Dissertativas</div>
       ${q2Answers.map((a, i) => `
         <div style="margin-bottom:14px;border-left:3px solid var(--orange);padding-left:12px">
-          <div style="font-size:10px;font-weight:700;color:var(--gray-500);text-transform:uppercase;margin-bottom:2px">${sanitize(a.categoria||'')} · Pergunta ${i+1}</div>
-          <div style="font-size:12px;font-weight:700;margin-bottom:4px">${sanitize(a.pergunta||'')}</div>
+          <div style="font-size:10px;font-weight:700;color:var(--gray-500);text-transform:uppercase;margin-bottom:2px">${sanitizeAI(a.categoria||'')} · Pergunta ${i+1}</div>
+          <div style="font-size:12px;font-weight:700;margin-bottom:4px">${sanitizeAI(a.pergunta||'')}</div>
           <div style="font-size:13px;color:var(--gray-700);line-height:1.6;background:var(--gray-100);padding:8px 10px">${sanitize(a.resposta||'(sem resposta)')}</div>
         </div>`).join('')}
     </div>` : '';
 
   if (hasAI) {
     // Relatório gerado pela IA: usa chaves corretas (resumo, pontos_fortes, pontos_atencao)
-    const fortes  = (report.pontos_fortes  || []).map(p => `<li style="margin-bottom:4px">${sanitize(p)}</li>`).join('');
-    const atencao = (report.pontos_atencao || []).map(p => `<li style="margin-bottom:4px">${sanitize(p)}</li>`).join('');
+    const fortes  = (report.pontos_fortes  || []).map(p => `<li style="margin-bottom:4px">${sanitizeAI(p)}</li>`).join('');
+    const atencao = (report.pontos_atencao || []).map(p => `<li style="margin-bottom:4px">${sanitizeAI(p)}</li>`).join('');
     return `
       <div class="report-section">
         <div class="report-section-header">🎯 Análise da IA</div>
-        <div class="report-section-body">${sanitize(report.resumo || '')}</div>
+        <div class="report-section-body">${sanitizeAI(report.resumo || '')}</div>
       </div>
       ${fortes  ? `<div class="report-section"><div class="report-section-header">✅ Pontos Fortes</div><div class="report-section-body"><ul style="margin:0;padding-left:16px">${fortes}</ul></div></div>` : ''}
       ${atencao ? `<div class="report-section"><div class="report-section-header">⚠️ Pontos de Atenção</div><div class="report-section-body"><ul style="margin:0;padding-left:16px">${atencao}</ul></div></div>` : ''}
@@ -2884,9 +2904,9 @@ function renderInterviewQuestions(c) {
     return `
     <div style="margin-bottom:18px;border-left:3px solid var(--orange);padding-left:14px">
       <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--gray-400);margin-bottom:4px">Pergunta ${i+1}</div>
-      <p style="font-size:13px;line-height:1.6;margin-bottom:${intent?'6px':'0'}">${sanitize(question)}</p>
-      ${intent ? `<div style="font-size:11px;color:var(--orange);font-weight:600;margin-bottom:${probe?'4px':'0'}">🎯 Objetivo: ${sanitize(intent)}</div>` : ''}
-      ${probe  ? `<div style="font-size:11px;color:var(--gray-400);font-style:italic">💡 Se vago: ${sanitize(probe)}</div>` : ''}
+      <p style="font-size:13px;line-height:1.6;margin-bottom:${intent?'6px':'0'}">${sanitizeAI(question)}</p>
+      ${intent ? `<div style="font-size:11px;color:var(--orange);font-weight:600;margin-bottom:${probe?'4px':'0'}">🎯 Objetivo: ${sanitizeAI(intent)}</div>` : ''}
+      ${probe  ? `<div style="font-size:11px;color:var(--gray-400);font-style:italic">💡 Se vago: ${sanitizeAI(probe)}</div>` : ''}
     </div>`;
   }).join('');
 }
@@ -3447,8 +3467,8 @@ function generateClarityQuestions() {
         <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:8px">
           <span class="label">Pergunta ${i+1} — ${sanitize(q.purpose||'Diagnóstico')}</span>
         </div>
-        <p style="font-weight:700;margin-bottom:12px;font-size:14px;line-height:1.5">${sanitize(q.question||'')}</p>
-        <div style="background:var(--gray-50);border-left:3px solid var(--orange);padding:10px 14px;font-style:italic;font-size:12px;color:var(--gray-700)">${sanitize(q.suggestion||'')}</div>
+        <p style="font-weight:700;margin-bottom:12px;font-size:14px;line-height:1.5">${sanitizeAI(q.question||'')}</p>
+        <div style="background:var(--gray-50);border-left:3px solid var(--orange);padding:10px 14px;font-style:italic;font-size:12px;color:var(--gray-700)">${sanitizeAI(q.suggestion||'')}</div>
       </div>`).join('');
     document.getElementById('cj-form').classList.add('hidden');
     document.getElementById('cj-clarity').classList.remove('hidden');
@@ -3526,14 +3546,14 @@ async function saveJobAndGenerateQs() {
     let q1 = [], q2 = [];
     if (parsed?.q1?.length >= 5) {
       q1 = parsed.q1.slice(0,20).map((q,i) => ({
-        question_text: sanitize(q.question), options: (q.options||[]).map(sanitize),
+        question_text: rawText(q.question), options: (q.options||[]).map(o => rawText(String(o), 300)),
         correct_option: String.fromCharCode(65+(typeof q.correct==='number'?q.correct:0)),
-        category: sanitize(q.category||'Comportamental')
+        category: rawText(q.category||'Comportamental', 100)
       }));
     }
     if (parsed?.q2?.length >= 3) {
       q2 = parsed.q2.slice(0,10).map(q => ({
-        question_text: sanitize(q.question), category: sanitize(q.category||'Comportamental')
+        question_text: rawText(q.question), category: rawText(q.category||'Comportamental', 100)
       }));
     }
     if (q1.length < 5) q1 = fallbackQs.q1;
@@ -3557,13 +3577,13 @@ function renderJobQPreview(q1, q2) {
   const q2p = document.getElementById('cj-q2-preview');
   if (q1p) q1p.innerHTML = q1.slice(0,5).map((q,i) =>
     `<div style="padding:12px;border:2px solid var(--black);margin-bottom:8px;font-size:13px">
-      <div class="label" style="margin-bottom:4px">Q${i+1} — ${sanitize(q.category||'')}</div>
-      <div style="font-weight:600">${sanitize(q.question_text)}</div>
+      <div class="label" style="margin-bottom:4px">Q${i+1} — ${sanitizeAI(q.category||'')}</div>
+      <div style="font-weight:600">${sanitizeAI(q.question_text)}</div>
     </div>`).join('') + (q1.length>5?`<div style="color:var(--gray-500);font-size:12px;padding:8px;text-align:center">+ ${q1.length-5} questões adicionais</div>`:'');
   if (q2p) q2p.innerHTML = q2.slice(0,3).map((q,i) =>
     `<div style="padding:12px;border:2px solid var(--black);margin-bottom:8px;font-size:13px">
-      <div class="label" style="margin-bottom:4px">Q${i+1} — ${sanitize(q.category||'')}</div>
-      <div style="font-weight:600">${sanitize(q.question_text)}</div>
+      <div class="label" style="margin-bottom:4px">Q${i+1} — ${sanitizeAI(q.category||'')}</div>
+      <div style="font-weight:600">${sanitizeAI(q.question_text)}</div>
     </div>`).join('') + (q2.length>3?`<div style="color:var(--gray-500);font-size:12px;padding:8px;text-align:center">+ ${q2.length-3} questões adicionais</div>`:'');
 
   document.getElementById('cj-clarity').classList.add('hidden');
@@ -4182,11 +4202,11 @@ REGRAS RÍGIDAS:
     if (parsed?.q1?.length >= 10) {
       q1Raw = parsed.q1.slice(0, 20).map((q, i) => ({
         id: 'kbq1_' + i,
-        question_text: sanitize(q.question || q.question_text || ''),
-        options: (q.options || []).map(o => sanitize(String(o))),
+        question_text: rawText(q.question || q.question_text || ''),
+        options: (q.options || []).map(o => rawText(String(o), 300)),
         correct_option: String.fromCharCode(65 + (typeof q.correct === 'number'
           ? Math.max(0, Math.min(3, q.correct)) : 0)),
-        category: sanitize(q.category || 'Comportamental')
+        category: rawText(q.category || 'Comportamental', 100)
       }));
     } else {
       // Fallback: usa AS_FALLBACK_Q (20 únicas) em vez de DEMO_Q1 (só 5)
@@ -4204,8 +4224,8 @@ REGRAS RÍGIDAS:
     if (parsed?.q2?.length >= 5) {
       q2Raw = parsed.q2.slice(0, 10).map((q, i) => ({
         id: 'kbq2_' + i,
-        question_text: sanitize(q.question || q.question_text || ''),
-        category: sanitize(q.category || 'Comportamental')
+        question_text: rawText(q.question || q.question_text || ''),
+        category: rawText(q.category || 'Comportamental', 100)
       }));
     } else {
       q2Raw = [...CF_FALLBACK_Q2].sort(() => Math.random() - 0.5)
@@ -4670,13 +4690,13 @@ function renderCFQ1() {
   const selected = STATE.cfQ1Answers[q.id];
   document.getElementById('cf-q1-container').innerHTML = `
     <div style="margin-bottom:20px">
-      <span class="label">${sanitize(q.category||'')} · Pergunta ${STATE.cfQ1Current+1} de ${total}</span>
-      <p style="font-weight:700;font-size:16px;line-height:1.5;margin-top:8px">${sanitize(q.question_text)}</p>
+      <span class="label">${sanitizeAI(q.category||'')} · Pergunta ${STATE.cfQ1Current+1} de ${total}</span>
+      <p style="font-weight:700;font-size:16px;line-height:1.5;margin-top:8px">${sanitizeAI(q.question_text)}</p>
     </div>
     ${(q.options||[]).map((o,i) => `
       <div class="q-option ${selected===i?'selected':''}" onclick="selectQ1Answer('${q.id}',${i},this)">
         <div class="q-option-letter">${String.fromCharCode(65+i)}</div>
-        <div class="q-option-text">${sanitize(o)}</div>
+        <div class="q-option-text">${sanitizeAI(o)}</div>
       </div>`).join('')}`;
 }
 
@@ -4713,8 +4733,8 @@ function renderCFQ2() {
   const saved = STATE.cfQ2Answers[q.id]||'';
   document.getElementById('cf-q2-container').innerHTML = `
     <div style="margin-bottom:20px">
-      <span class="label">${sanitize(q.category||'')} · Pergunta ${STATE.cfQ2Current+1} de ${total}</span>
-      <p style="font-weight:700;font-size:16px;line-height:1.5;margin-top:8px">${sanitize(q.question_text)}</p>
+      <span class="label">${sanitizeAI(q.category||'')} · Pergunta ${STATE.cfQ2Current+1} de ${total}</span>
+      <p style="font-weight:700;font-size:16px;line-height:1.5;margin-top:8px">${sanitizeAI(q.question_text)}</p>
       <div style="background:var(--yellow-light);border-left:3px solid var(--yellow);padding:10px 14px;margin-top:12px;font-size:12px;color:var(--yellow)">
         🎯 Use o Método STAR: Situação, Tarefa, Ação e Resultado.
       </div>
@@ -4946,11 +4966,11 @@ REGRAS ABSOLUTAS:
       if (parsed?.q1?.length >= 5) {
         questions = parsed.q1.slice(0, 20).map((q, i) => ({
           id: 'asq_' + i,
-          question_text: sanitize(q.question || q.question_text || ''),
-          options: (q.options || []).map(o => sanitize(String(o))),
+          question_text: rawText(q.question || q.question_text || ''),
+          options: (q.options || []).map(o => rawText(String(o), 300)),
           correct_option: String.fromCharCode(65 + (typeof q.correct === 'number'
             ? Math.max(0, Math.min(3, q.correct)) : 0)),
-          category: sanitize(q.category || 'Comportamental')
+          category: rawText(q.category || 'Comportamental', 100)
         }));
       }
 
@@ -5013,14 +5033,14 @@ function renderASQ() {
   const selected = STATE.asAnswers[q.id];
   document.getElementById('as-q-container').innerHTML = `
     <div style="margin-bottom:20px">
-      <span class="label">${sanitize(q.category||'')} · Pergunta ${STATE.asCurrent+1} de ${total}</span>
-      <p style="font-weight:700;font-size:16px;line-height:1.5;margin-top:8px">${sanitize(q.question_text)}</p>
+      <span class="label">${sanitizeAI(q.category||'')} · Pergunta ${STATE.asCurrent+1} de ${total}</span>
+      <p style="font-weight:700;font-size:16px;line-height:1.5;margin-top:8px">${sanitizeAI(q.question_text)}</p>
     </div>
     ${(q.options||[]).map((o,i) => {
       const letter = String.fromCharCode(65+i);
       return `<div class="q-option ${selected===letter?'selected':''}" onclick="selectASAnswer('${q.id}','${letter}',this)">
         <div class="q-option-letter">${letter}</div>
-        <div class="q-option-text">${sanitize(o)}</div>
+        <div class="q-option-text">${sanitizeAI(o)}</div>
       </div>`;
     }).join('')}`;
 }
