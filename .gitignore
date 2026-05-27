@@ -1,5 +1,14 @@
 node_modules/
 .env
+.env.local
+.env.*.local
+.env.production
 *.log
 .DS_Store
 Thumbs.db
+extracted/
+files.zip
+python/
+*.pem
+*.key
+secrets.json

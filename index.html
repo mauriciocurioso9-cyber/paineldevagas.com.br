@@ -787,7 +787,7 @@ td.bold { font-weight: 700; }
       <div class="feature-card">
         <div class="feature-icon">🔒</div>
         <div class="feature-title">Segurança Total</div>
-        <p class="feature-desc">Dados isolados por empresa, autenticação JWT, auditoria completa e regras de acesso rigorosas no Firebase.</p>
+        <p class="feature-desc">Dados isolados por empresa, autenticação JWT, auditoria completa e regras de acesso rigorosas no Supabase (RLS).</p>
       </div>
     </div>
   </section>
@@ -854,11 +854,11 @@ td.bold { font-weight: 700; }
       <div id="login-alert"></div>
       <div class="form-group">
         <label class="form-label">E-mail Corporativo</label>
-        <input type="email" id="login-email" class="form-input" placeholder="seu@empresa.com" value="demo@empresa.com" />
+        <input type="email" id="login-email" class="form-input" placeholder="seu@empresa.com" />
       </div>
       <div class="form-group">
         <label class="form-label">Senha</label>
-        <input type="password" id="login-password" class="form-input" placeholder="••••••••" value="Demo@123" />
+        <input type="password" id="login-password" class="form-input" placeholder="••••••••" />
       </div>
       <button class="btn btn-primary" style="width:100%;justify-content:center" onclick="doLogin()">
         <span id="login-btn-text">🔐 Entrar no Sistema</span>
@@ -1423,7 +1423,7 @@ td.bold { font-weight: 700; }
             <div class="card card-lg">
               <h2 class="card-title">👤 Meu Perfil</h2>
               <div class="form-group"><label class="form-label">Nome Completo</label><input class="form-input" id="settings-name" value="Recrutador Demo" /></div>
-              <div class="form-group"><label class="form-label">E-mail</label><input class="form-input" value="demo@empresa.com" /></div>
+              <div class="form-group"><label class="form-label">E-mail</label><input class="form-input" id="settings-email" value="" /></div>
               <hr class="divider" />
               <h3 style="font-weight:700;margin-bottom:16px;font-size:14px">🔐 Alterar Senha</h3>
               <div class="form-group"><label class="form-label">Senha Atual</label><input type="password" class="form-input" placeholder="••••••••" /></div>
