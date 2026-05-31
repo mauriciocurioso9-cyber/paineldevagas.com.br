@@ -1,0 +1,23 @@
+{
+  "name": "recrutadoria-mcp",
+  "version": "1.0.0",
+  "description": "MCP Server para o RecrutadorIA — expõe ferramentas de recrutamento para Claude",
+  "type": "module",
+  "bin": {
+    "recrutadoria-mcp": "./dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev":   "tsx index.ts",
+    "start": "node dist/index.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0",
+    "@supabase/supabase-js":     "^2.47.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "tsx":         "^4.19.0",
+    "typescript":  "^5.7.0"
+  }
+}

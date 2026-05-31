@@ -1,0 +1,14 @@
+{
+  "mcpServers": {
+    "recrutadoria": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["tsx", "mcp-server/index.ts"],
+      "env": {
+        "SUPABASE_URL": "https://kmrxeollfgresqufllkz.supabase.co",
+        "SUPABASE_SERVICE_ROLE_KEY": "${SUPABASE_SERVICE_ROLE_KEY}",
+        "ANTHROPIC_API_KEY": "${ANTHROPIC_API_KEY}"
+      }
+    }
+  }
+}
