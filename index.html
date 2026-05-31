@@ -1632,13 +1632,13 @@ td.bold { font-weight: 700; }
       </div>
 
       <div id="cf-steps" class="steps">
-        <div class="step active" id="cf-step-1"><div class="step-circle">1</div><div class="step-label">Seus Dados</div></div>
+        <div class="step active" id="cf-step-1"><div class="step-circle">1</div><div class="step-label">Currículo</div></div>
         <div class="step-line"></div>
-        <div class="step" id="cf-step-2"><div class="step-circle">2</div><div class="step-label">Currículo</div></div>
+        <div class="step" id="cf-step-2"><div class="step-circle">2</div><div class="step-label">Q1 — Cultura</div></div>
         <div class="step-line"></div>
-        <div class="step" id="cf-step-3"><div class="step-circle">3</div><div class="step-label">Q1 — Cultura</div></div>
+        <div class="step" id="cf-step-3"><div class="step-circle">3</div><div class="step-label">Q2 — Mentalidade</div></div>
         <div class="step-line"></div>
-        <div class="step" id="cf-step-4"><div class="step-circle">4</div><div class="step-label">Q2 — Mentalidade</div></div>
+        <div class="step" id="cf-step-4"><div class="step-circle">4</div><div class="step-label">Seus Dados</div></div>
       </div>
 
       <!-- Destaque da vaga escolhida -->
@@ -1823,6 +1823,30 @@ td.bold { font-weight: 700; }
         </div>
       </div>
 
+      <!-- Step 5: Seus Dados (coletado no final para reduzir abandono) -->
+      <div id="cf-s5" class="hidden">
+        <div style="text-align:center;margin-bottom:28px">
+          <div style="font-size:48px;margin-bottom:12px">🎯</div>
+          <h2 class="title" style="font-size:28px;margin-bottom:8px">Quase lá! Só mais um passo.</h2>
+          <p style="font-size:13px;color:var(--gray-500);max-width:400px;margin:0 auto">
+            Suas respostas foram salvas. Informe seus dados para enviar o resultado ao recrutador.
+          </p>
+        </div>
+        <div id="cf-s5-alert"></div>
+        <div class="form-group">
+          <label class="form-label">Nome Completo *</label>
+          <input class="form-input" id="cf-name" placeholder="Seu nome completo" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">E-mail *</label>
+          <input type="email" class="form-input" id="cf-email" placeholder="seu@email.com" />
+        </div>
+        <button class="btn btn-primary btn-lg" style="width:100%;justify-content:center;margin-top:8px" onclick="cfSubmitDados()">
+          <span id="cf-s5-btn-text">Enviar Resultado →</span>
+          <div class="spinner hidden" id="cf-s5-spinner"></div>
+        </button>
+      </div>
+
       <!-- Success -->
       <div id="cf-success" class="hidden" style="text-align:center;padding:40px 0">
         <div style="font-size:72px;margin-bottom:20px">🎉</div>
@@ -1877,11 +1901,11 @@ td.bold { font-weight: 700; }
       </div>
 
       <div id="as-steps" class="steps">
-        <div class="step active" id="as-step-1"><div class="step-circle">1</div><div class="step-label">Seus Dados</div></div>
+        <div class="step active" id="as-step-1"><div class="step-circle">1</div><div class="step-label">Área</div></div>
         <div class="step-line"></div>
-        <div class="step" id="as-step-2"><div class="step-circle">2</div><div class="step-label">Currículo</div></div>
+        <div class="step" id="as-step-2"><div class="step-circle">2</div><div class="step-label">20 Perguntas</div></div>
         <div class="step-line"></div>
-        <div class="step" id="as-step-3"><div class="step-circle">3</div><div class="step-label">20 Perguntas</div></div>
+        <div class="step" id="as-step-3"><div class="step-circle">3</div><div class="step-label">Seus Dados</div></div>
         <div class="step-line"></div>
         <div class="step" id="as-step-4"><div class="step-circle">4</div><div class="step-label">Resultado IA</div></div>
       </div>
@@ -1893,17 +1917,9 @@ td.bold { font-weight: 700; }
 
       <div id="as-alert"></div>
 
-      <!-- Step 1 -->
+      <!-- Step 1: Área de Atuação + Currículo (dados pessoais foram para o final) -->
       <div id="as-s1">
-        <h2 class="title" style="font-size:28px;margin-bottom:20px">Seus Dados</h2>
-        <div class="form-group"><label class="form-label">Nome Completo *</label><input class="form-input" id="as-name" placeholder="Seu nome completo" /></div>
-        <div class="form-group"><label class="form-label">E-mail *</label><input type="email" class="form-input" id="as-email" placeholder="seu@email.com" /></div>
-        <button class="btn btn-primary btn-lg" style="width:100%;justify-content:center" onclick="asNextStep(1)">Continuar →</button>
-      </div>
-
-      <!-- Step 2 -->
-      <div id="as-s2" class="hidden">
-        <h2 class="title" style="font-size:28px;margin-bottom:20px">Currículo e Área de Atuação</h2>
+        <h2 class="title" style="font-size:28px;margin-bottom:20px">Área de Atuação</h2>
         <div class="form-group">
           <label class="form-label">Área de Atuação / Cargo Desejado *</label>
           <input class="form-input" id="as-area" placeholder="Ex: Gestão Comercial, Desenvolvimento de Software, Marketing Digital…" />
@@ -1925,13 +1941,33 @@ td.bold { font-weight: 700; }
           <div style="font-size:14px;color:var(--gray-600);font-weight:600">Gerando 20 questões personalizadas com IA…</div>
           <div style="font-size:12px;color:var(--gray-400);margin-top:6px">Pode levar alguns segundos</div>
         </div>
-        <div id="as-s2-actions" style="display:flex;gap:12px;margin-top:20px">
-          <button class="btn btn-outline" onclick="asGoBack(2)">← Voltar</button>
-          <button class="btn btn-primary btn-lg" style="flex:1;justify-content:center" onclick="asNextStep(2)">
+        <div id="as-s2-actions">
+          <button class="btn btn-primary btn-lg" style="width:100%;justify-content:center;margin-top:20px" onclick="asNextStep(1)">
             <span id="as-s2-btn">Gerar Questionário com IA →</span>
             <div class="spinner hidden" id="as-s2-spinner"></div>
           </button>
         </div>
+      </div>
+
+      <!-- as-s2 mantido como placeholder vazio para compatibilidade -->
+      <div id="as-s2" class="hidden"></div>
+
+      <!-- Step "Seus Dados" — exibido após as questões, antes do resultado -->
+      <div id="as-s-dados" class="hidden">
+        <div style="text-align:center;margin-bottom:28px">
+          <div style="font-size:48px;margin-bottom:12px">🎯</div>
+          <h2 class="title" style="font-size:28px;margin-bottom:8px">Quase lá!</h2>
+          <p style="font-size:13px;color:var(--gray-500);max-width:400px;margin:0 auto">
+            Informe seus dados para receber a análise completa do seu perfil comportamental.
+          </p>
+        </div>
+        <div id="as-dados-alert"></div>
+        <div class="form-group"><label class="form-label">Nome Completo *</label><input class="form-input" id="as-name" placeholder="Seu nome completo" /></div>
+        <div class="form-group"><label class="form-label">E-mail *</label><input type="email" class="form-input" id="as-email" placeholder="seu@email.com" /></div>
+        <button class="btn btn-primary btn-lg" style="width:100%;justify-content:center" onclick="asSubmitDados()">
+          <span id="as-dados-btn">Ver Minha Análise →</span>
+          <div class="spinner hidden" id="as-dados-spinner"></div>
+        </button>
       </div>
 
       <!-- Step 3 -->
@@ -4058,14 +4094,15 @@ async function initCandidateFlow() {
     if (levEl)  levEl.textContent  = job.seniority_level||'';
   }
 
-  cfGoTo(1);
+  // Inicia no currículo (step 2) — dados pessoais são coletados no final
+  cfGoTo(2);
 }
 
 // Painéis extras fora do sistema numérico
 const CF_EXTRA_PANELS = ['cf-s-loading','cf-s-analysis','cf-s-improve','cf-s-jobs'];
 
 function cfShowPanel(panelId) {
-  ['cf-s1','cf-s2','cf-s2b','cf-s3','cf-s4','cf-success', ...CF_EXTRA_PANELS]
+  ['cf-s1','cf-s2','cf-s2b','cf-s3','cf-s4','cf-s5','cf-success', ...CF_EXTRA_PANELS]
     .forEach(id => document.getElementById(id)?.classList.add('hidden'));
   document.getElementById(panelId)?.classList.remove('hidden');
   document.getElementById('cf-alert').innerHTML = '';
@@ -4073,24 +4110,44 @@ function cfShowPanel(panelId) {
 }
 
 function cfGoTo(step) {
-  // ids: 1=dados, 2=currículo, 3=cf-s2b(aviso), 4=Q1, 5=Q2, 6=sucesso
-  ['cf-s1','cf-s2','cf-s2b','cf-s3','cf-s4','cf-success', ...CF_EXTRA_PANELS]
+  // ids: 2=currículo, 3=cf-s2b(aviso), 4=Q1, 5=Q2, 6=sucesso
+  // cf-s5 (Seus Dados) é exibido via cfGoToS5() — não está no mapa numérico
+  ['cf-s1','cf-s2','cf-s2b','cf-s3','cf-s4','cf-s5','cf-success', ...CF_EXTRA_PANELS]
     .forEach(id => document.getElementById(id)?.classList.add('hidden'));
   const ids = ['','cf-s1','cf-s2','cf-s2b','cf-s3','cf-s4','cf-success'];
   if (ids[step]) document.getElementById(ids[step])?.classList.remove('hidden');
+  // Mapeamento step numérico → indicador visual do stepper (nova ordem)
+  // 2=Currículo(1), 3=aviso(1), 4=Q1(2), 5=Q2(3), 6=success(4)
+  const stepperMap = {1:1, 2:1, 3:1, 4:2, 5:3, 6:4};
+  const visualStep = stepperMap[step] ?? step;
   ['cf-step-1','cf-step-2','cf-step-3','cf-step-4'].forEach((s,i) => {
     const el = document.getElementById(s);
     if (!el) return;
     el.classList.remove('active','done');
-    if (i+1 < step) el.classList.add('done');
-    if (i+1 === step) el.classList.add('active');
+    if (i+1 < visualStep) el.classList.add('done');
+    if (i+1 === visualStep) el.classList.add('active');
   });
   document.getElementById('cf-alert').innerHTML = '';
-  // Adapta label do botão step 2 conforme modo
   if (step === 2) {
     const btn = document.getElementById('cf-s2-btn');
     if (btn) btn.textContent = STATE.cfSpontaneous ? 'Ver Vagas →' : 'Iniciar Processo →';
   }
+  window.scrollTo(0,0);
+}
+
+// Exibe o painel "Seus Dados" (cf-s5) e ativa o passo 4 do stepper
+function cfGoToS5() {
+  ['cf-s1','cf-s2','cf-s2b','cf-s3','cf-s4','cf-success', ...CF_EXTRA_PANELS]
+    .forEach(id => document.getElementById(id)?.classList.add('hidden'));
+  document.getElementById('cf-s5')?.classList.remove('hidden');
+  ['cf-step-1','cf-step-2','cf-step-3','cf-step-4'].forEach((s,i) => {
+    const el = document.getElementById(s);
+    if (!el) return;
+    el.classList.remove('active','done');
+    if (i < 3) el.classList.add('done');
+    if (i === 3) el.classList.add('active');
+  });
+  document.getElementById('cf-s5-alert').innerHTML = '';
   window.scrollTo(0,0);
 }
 function cfGoBack(step) { cfGoTo(step - 1); }
@@ -4887,12 +4944,37 @@ function cfQ2Next() {
   if (STATE.cfQ2Current < STATE.cfQ2Questions.length-1) { STATE.cfQ2Current++; renderCFQ2(); }
   else {
     showSpinner('cf-q2-spinner','cf-q2-btn','');
-    setTimeout(() => { hideSpinner('cf-q2-spinner','cf-q2-btn',''); cfFinalizarProcesso(false); }, 1500);
+    setTimeout(() => {
+      hideSpinner('cf-q2-spinner','cf-q2-btn','');
+      // Após Q2, coleta dados pessoais antes de finalizar (reduz abandono)
+      cfGoToS5();
+    }, 1500);
   }
 }
 function cfQ2Prev() {
   if (STATE.cfQ2Current > 0) { STATE.cfQ2Current--; renderCFQ2(); }
   else { STATE.cfQ1Current = STATE.cfQ1Questions.length - 1; cfGoTo(4); renderCFQ1(); }
+}
+
+// Coleta e valida dados pessoais do candidato (último passo antes de salvar)
+async function cfSubmitDados() {
+  const name  = sanitize(document.getElementById('cf-name')?.value?.trim() || '');
+  const email = sanitizeEmail(document.getElementById('cf-email')?.value?.trim() || '');
+  if (!name)  { showAlert('cf-s5-alert','error','Informe seu nome completo.'); return; }
+  if (!email) { showAlert('cf-s5-alert','error','Informe um e-mail válido.'); return; }
+
+  // Verifica duplicata (só quando há vaga específica)
+  if (!DEMO_MODE && STATE.cfJobId && !STATE.cfSpontaneous) {
+    const { data: dup } = await _sb.from('candidates')
+      .select('id').eq('job_id', STATE.cfJobId).eq('email', email).maybeSingle();
+    if (dup) { showAlert('cf-s5-alert','error','Este e-mail já se candidatou a esta vaga.'); return; }
+  }
+
+  showSpinner('cf-s5-spinner','cf-s5-btn-text','Enviando...');
+  STATE.cfCandidateName  = name;
+  STATE.cfCandidateEmail = email;
+  hideSpinner('cf-s5-spinner','cf-s5-btn-text','Enviar Resultado →');
+  cfFinalizarProcesso(false);
 }
 
 async function cfFinalizarProcesso(timedOut) {
@@ -5041,18 +5123,24 @@ function initAssessment() {
   document.getElementById('as-s2-loading')?.classList.add('hidden');
   document.getElementById('as-s2-actions')?.classList.remove('hidden');
   document.getElementById('as-post-actions')?.classList.add('hidden');
+  document.getElementById('as-s-dados')?.classList.add('hidden');
+  document.getElementById('as-dados-alert') && (document.getElementById('as-dados-alert').innerHTML = '');
 }
 
 function asGoTo(step) {
-  ['as-s1','as-s2','as-s3','as-s4'].forEach(id => document.getElementById(id)?.classList.add('hidden'));
+  ['as-s1','as-s2','as-s3','as-s4','as-s-dados'].forEach(id => document.getElementById(id)?.classList.add('hidden'));
+  // step 1=área, 2=vazio, 3=questões, 4=resultado
   const ids = ['','as-s1','as-s2','as-s3','as-s4'];
   if (ids[step]) document.getElementById(ids[step])?.classList.remove('hidden');
+  // Mapeamento stepper: área(1)→1, questões(3)→2, dados(3visual)→3, resultado(4)→4
+  const stepperMap = {1:1, 2:1, 3:2, 4:4};
+  const visualStep = stepperMap[step] ?? step;
   ['as-step-1','as-step-2','as-step-3','as-step-4'].forEach((s,i) => {
     const el = document.getElementById(s);
     if (!el) return;
     el.classList.remove('active','done');
-    if (i+1 < step)  el.classList.add('done');
-    if (i+1 === step) el.classList.add('active');
+    if (i+1 < visualStep)  el.classList.add('done');
+    if (i+1 === visualStep) el.classList.add('active');
   });
   document.getElementById('as-alert').innerHTML = '';
   window.scrollTo(0,0);
@@ -5157,15 +5245,8 @@ REGRAS ABSOLUTAS:
 }
 
 async function asNextStep(step) {
+  // Step 1: só pede área de atuação (dados pessoais foram para o final)
   if (step === 1) {
-    const name  = sanitize(document.getElementById('as-name').value.trim());
-    const email = sanitizeEmail(document.getElementById('as-email').value.trim());
-    if (!name || !email) { showAlert('as-alert','error','Preencha todos os campos.'); return; }
-    STATE.asName  = name;
-    STATE.asEmail = email;
-    asGoTo(2);
-
-  } else if (step === 2) {
     const area = sanitize(document.getElementById('as-area')?.value.trim() || '');
     if (!area) { showAlert('as-alert','error','Informe sua área de atuação ou cargo desejado.'); return; }
     STATE.asArea = area;
@@ -5178,12 +5259,24 @@ async function asNextStep(step) {
     // Gera 20 questões via IA
     STATE.asQuestions = await asGenerateQuestions();
 
-    // Esconde loading, vai para step 3
+    // Esconde loading, vai para step 3 (questões)
     document.getElementById('as-s2-loading')?.classList.add('hidden');
     document.getElementById('as-s2-actions')?.classList.remove('hidden');
     asGoTo(3);
     renderASQ();
   }
+}
+
+// Coleta dados pessoais do candidato antes de exibir os resultados (Assessment)
+function asSubmitDados() {
+  const name  = sanitize(document.getElementById('as-name')?.value.trim() || '');
+  const email = sanitizeEmail(document.getElementById('as-email')?.value.trim() || '');
+  if (!name)  { showAlert('as-dados-alert','error','Informe seu nome completo.'); return; }
+  if (!email) { showAlert('as-dados-alert','error','Informe um e-mail válido.'); return; }
+  STATE.asName  = name;
+  STATE.asEmail = email;
+  asGoTo(4);
+  renderASResult();
 }
 
 function renderASQ() {
@@ -5227,8 +5320,12 @@ function asQNext() {
     showSpinner('as-q-spinner','as-q-btn','');
     setTimeout(() => {
       hideSpinner('as-q-spinner','as-q-btn','');
-      asGoTo(4);
-      renderASResult();
+      // Coleta dados pessoais antes de mostrar resultado
+      asGoTo(3); // ativa stepper "Seus Dados"
+      ['as-s1','as-s2','as-s3','as-s4','as-s-dados'].forEach(id => document.getElementById(id)?.classList.add('hidden'));
+      document.getElementById('as-s-dados')?.classList.remove('hidden');
+      document.getElementById('as-dados-alert').innerHTML = '';
+      window.scrollTo(0,0);
     }, 1200);
   }
 }
