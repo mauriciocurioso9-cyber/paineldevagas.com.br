@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>RecrutadorIA — Recrutamento com Cabeca de Dono</title>
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,500;0,700;1,300&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,500;0,700;1,300&family=JetBrains+Mono:wght@400;700&family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
 <style>
 :root {
   --orange: #FF5A1F;
@@ -699,6 +699,409 @@ td.bold { font-weight: 700; }
   font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.15em;
   border-bottom: 2px solid var(--black); pointer-events: none;
 }
+
+/* ================================================================
+   LANDING PAGE — DARK TECH THEME v3.0
+   ================================================================ */
+#page-landing {
+  --ld-bg:       #060B14;
+  --ld-bg2:      #0B1221;
+  --ld-card:     #0E1629;
+  --ld-card2:    #0d1525;
+  --ld-border:   rgba(255,255,255,0.07);
+  --ld-border2:  rgba(255,255,255,0.12);
+  --ld-cyan:     #00D4FF;
+  --ld-cyan-dim: rgba(0,212,255,0.10);
+  --ld-cyan-glow:rgba(0,212,255,0.22);
+  --ld-blue:     #3B82F6;
+  --ld-purple:   #8B5CF6;
+  --ld-green:    #10B981;
+  --ld-red:      #F87171;
+  --ld-white:    #F1F5F9;
+  --ld-gray-3:   #CBD5E1;
+  --ld-gray-4:   #94A3B8;
+  --ld-gray-5:   #64748B;
+  background: var(--ld-bg);
+  color: var(--ld-white);
+  font-family: 'Inter', 'DM Sans', sans-serif;
+  position: relative;
+}
+/* Grid texture */
+#page-landing::before {
+  content: '';
+  position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  background-image:
+    linear-gradient(rgba(0,212,255,0.018) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,212,255,0.018) 1px, transparent 1px);
+  background-size: 52px 52px;
+}
+#page-landing > * { position: relative; z-index: 1; }
+
+/* ── NAV ── */
+#page-landing .landing-nav {
+  background: rgba(6,11,20,0.88);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border-bottom: 1px solid var(--ld-border);
+  padding: 0 48px; height: 68px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+#page-landing .landing-logo {
+  font-family: 'Space Grotesk', 'Bebas Neue', sans-serif;
+  font-size: 22px; font-weight: 700; letter-spacing: -0.3px;
+  color: var(--ld-white);
+}
+#page-landing .landing-logo span { color: var(--ld-cyan); }
+
+/* search pill */
+.ld-search-pill {
+  display: flex; align-items: stretch;
+  border: 1px solid var(--ld-border2); border-radius: 40px;
+  background: var(--ld-card); overflow: hidden;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.ld-search-pill:hover { border-color: var(--ld-cyan); box-shadow: 0 0 20px var(--ld-cyan-glow); }
+.ld-sf {
+  display: flex; flex-direction: column; justify-content: center;
+  padding: 9px 20px; background: none; border: none;
+  cursor: pointer; text-align: left;
+}
+.ld-sf + .ld-sf { border-left: 1px solid var(--ld-border); }
+.ld-sf-label { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.12em; color: var(--ld-white); }
+.ld-sf-val   { font-size: 12px; color: var(--ld-gray-5); margin-top: 1px; }
+.ld-search-btn {
+  background: var(--ld-cyan); border: none; cursor: pointer;
+  width: 42px; height: 42px; border-radius: 40px;
+  margin: 9px 9px 9px 0; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.2s;
+}
+.ld-search-btn:hover { background: #00B8E0; box-shadow: 0 0 16px var(--ld-cyan-glow); }
+.ld-search-btn svg { color: var(--ld-bg); }
+
+/* nav buttons */
+#page-landing .landing-nav-links { display: flex; gap: 8px; align-items: center; }
+#page-landing .btn-outline.btn-sm {
+  background: none; border: 1px solid var(--ld-border2); color: var(--ld-gray-4);
+  border-radius: 8px; padding: 8px 15px; font-size: 12px; font-weight: 500;
+  box-shadow: none; font-family: 'Inter', sans-serif;
+}
+#page-landing .btn-outline.btn-sm:hover { border-color: var(--ld-cyan); color: var(--ld-cyan); box-shadow: none; transform: none; }
+#page-landing .btn-primary.btn-sm {
+  background: var(--ld-cyan); color: var(--ld-bg);
+  border: none; border-radius: 8px; padding: 8px 16px;
+  font-size: 12px; font-weight: 700; box-shadow: none;
+  font-family: 'Inter', sans-serif;
+}
+#page-landing .btn-primary.btn-sm:hover { background: #00B8E0; box-shadow: 0 0 16px var(--ld-cyan-glow); transform: none; }
+
+/* ── HERO ── */
+#page-landing .hero {
+  padding: 72px 48px 56px; border-bottom: none;
+  display: block; background: none; text-align: center;
+}
+#page-landing .hero-badge {
+  display: inline-flex; align-items: center; gap: 8px;
+  border: 1px solid var(--ld-cyan-dim); background: var(--ld-cyan-dim);
+  color: var(--ld-cyan); border-radius: 20px; padding: 6px 16px;
+  font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
+  margin-bottom: 24px; box-shadow: none;
+}
+#page-landing .hero-badge::before {
+  content: ''; width: 6px; height: 6px; border-radius: 50%;
+  background: var(--ld-cyan); box-shadow: 0 0 8px var(--ld-cyan);
+}
+#page-landing .hero h1 {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 54px; font-weight: 700; line-height: 1.08;
+  letter-spacing: -1.5px; color: var(--ld-white); margin-bottom: 16px;
+}
+#page-landing .hero h1 span { color: var(--ld-cyan); }
+#page-landing .hero-sub {
+  font-size: 16px; color: var(--ld-gray-4); line-height: 1.65;
+  max-width: 520px; margin: 0 auto 0;
+}
+
+/* ── CATEGORIES ── */
+.ld-categories {
+  padding: 32px 48px 36px;
+  display: flex; gap: 8px; justify-content: center; flex-wrap: wrap;
+}
+.ld-chip {
+  display: flex; align-items: center; gap: 7px;
+  padding: 9px 16px; border-radius: 8px;
+  border: 1px solid var(--ld-border); background: var(--ld-card);
+  font-size: 12px; font-weight: 500; color: var(--ld-gray-4);
+  cursor: pointer; transition: all 0.2s; white-space: nowrap;
+  font-family: 'Inter', sans-serif;
+}
+.ld-chip:hover, .ld-chip.active {
+  border-color: var(--ld-cyan); color: var(--ld-cyan); background: var(--ld-cyan-dim);
+}
+
+/* ── SECTION HEADER ── */
+.ld-section-header {
+  padding: 0 48px 20px;
+  display: flex; align-items: baseline; justify-content: space-between;
+}
+.ld-section-header h2 {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 20px; font-weight: 700; letter-spacing: -0.3px;
+  color: var(--ld-white);
+}
+.ld-section-header a {
+  font-size: 12px; font-weight: 500; color: var(--ld-cyan);
+  cursor: pointer; text-decoration: none;
+}
+
+/* ── JOB CARDS GRID ── */
+#page-landing .jobs-section { background: none; border: none; padding: 0; }
+#page-landing .jobs-grid {
+  padding: 0 48px 48px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(268px, 1fr));
+  gap: 14px;
+}
+.ld-job-card {
+  border-radius: 14px;
+  background: var(--ld-card);
+  border: 1px solid var(--ld-border);
+  cursor: pointer; overflow: hidden;
+  transition: border-color 0.22s, box-shadow 0.22s, transform 0.22s;
+}
+.ld-job-card:hover {
+  border-color: var(--ld-cyan);
+  box-shadow: 0 0 28px var(--ld-cyan-glow);
+  transform: translateY(-3px);
+}
+.ld-card-bar { height: 3px; }
+.ld-bar-cyan   { background: linear-gradient(90deg, #00D4FF, #0088AA); }
+.ld-bar-blue   { background: linear-gradient(90deg, #3B82F6, #6366F1); }
+.ld-bar-purple { background: linear-gradient(90deg, #8B5CF6, #EC4899); }
+.ld-bar-green  { background: linear-gradient(90deg, #10B981, #059669); }
+
+.ld-card-visual {
+  height: 130px; background: var(--ld-bg2);
+  display: flex; align-items: center; justify-content: center;
+  position: relative; overflow: hidden;
+}
+.ld-card-visual::after {
+  content: ''; position: absolute; inset: 0;
+  background: radial-gradient(circle at 50% 50%, rgba(0,212,255,0.07), transparent 68%);
+}
+.ld-card-visual.glow-blue::after  { background: radial-gradient(circle at 50% 50%, rgba(59,130,246,0.08), transparent 68%); }
+.ld-card-visual.glow-purple::after{ background: radial-gradient(circle at 50% 50%, rgba(139,92,246,0.08), transparent 68%); }
+.ld-card-visual.glow-green::after { background: radial-gradient(circle at 50% 50%, rgba(16,185,129,0.08), transparent 68%); }
+
+.ld-card-initial {
+  width: 52px; height: 52px; border-radius: 12px;
+  border: 1px solid var(--ld-border2); background: rgba(255,255,255,0.04);
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 22px; font-weight: 700; color: var(--ld-white);
+  position: relative; z-index: 1;
+}
+.ld-card-badge {
+  position: absolute; top: 10px; left: 10px; z-index: 2;
+  border-radius: 5px; padding: 3px 9px;
+  font-size: 9px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
+}
+.ld-badge-new    { background: rgba(0,212,255,0.12); color: var(--ld-cyan); border: 1px solid rgba(0,212,255,0.25); }
+.ld-badge-urgent { background: rgba(239,68,68,0.12); color: var(--ld-red);  border: 1px solid rgba(239,68,68,0.25); }
+.ld-badge-hot    { background: rgba(139,92,246,0.12); color: #A78BFA; border: 1px solid rgba(139,92,246,0.25); }
+
+.ld-card-body { padding: 14px 16px 16px; }
+.ld-card-company {
+  font-size: 10px; color: var(--ld-gray-5); font-weight: 600;
+  text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 5px;
+  display: flex; align-items: center; gap: 6px;
+}
+.ld-card-company::before {
+  content: ''; width: 4px; height: 4px; border-radius: 50%;
+  background: var(--ld-cyan); flex-shrink: 0;
+}
+.ld-card-title {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 14px; font-weight: 600; color: var(--ld-white);
+  margin-bottom: 10px; line-height: 1.35; letter-spacing: -0.1px;
+}
+.ld-card-tags { display: flex; gap: 5px; flex-wrap: wrap; margin-bottom: 12px; }
+.ld-tag {
+  background: rgba(255,255,255,0.05); color: var(--ld-gray-4);
+  border: 1px solid var(--ld-border); border-radius: 5px;
+  padding: 3px 8px; font-size: 10px; font-weight: 600;
+}
+.ld-tag-match {
+  background: rgba(0,212,255,0.08); color: var(--ld-cyan);
+  border-color: rgba(0,212,255,0.2);
+}
+.ld-card-footer {
+  display: flex; align-items: center; justify-content: space-between;
+  padding-top: 10px; border-top: 1px solid var(--ld-border);
+}
+.ld-fit { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--ld-gray-5); font-weight: 500; }
+.ld-fit-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+.ld-fit-dot.high { background: var(--ld-green); box-shadow: 0 0 6px rgba(16,185,129,0.6); }
+.ld-fit-dot.med  { background: var(--ld-cyan);  box-shadow: 0 0 6px rgba(0,212,255,0.4); }
+.ld-fit-dot.low  { background: var(--ld-gray-5); }
+.ld-card-action {
+  background: transparent; color: var(--ld-cyan);
+  border: 1px solid rgba(0,212,255,0.28); border-radius: 7px;
+  padding: 6px 14px; font-size: 11px; font-weight: 700;
+  cursor: pointer; transition: all 0.2s; font-family: 'Inter', sans-serif;
+}
+.ld-card-action:hover { background: var(--ld-cyan); color: var(--ld-bg); border-color: var(--ld-cyan); }
+
+/* ── ASSESSMENT CTA ── */
+.ld-cta-assess {
+  margin: 0 48px 52px;
+  border-radius: 20px; border: 1px solid var(--ld-border2);
+  background: var(--ld-card2); padding: 44px 48px;
+  display: grid; grid-template-columns: 1fr auto; gap: 40px; align-items: center;
+  position: relative; overflow: hidden;
+}
+.ld-cta-assess::before {
+  content: ''; position: absolute; top: -80px; left: -80px;
+  width: 280px; height: 280px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(0,212,255,0.06), transparent 70%);
+  pointer-events: none;
+}
+.ld-cta-tag {
+  font-size: 10px; font-weight: 700; color: var(--ld-cyan);
+  text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 12px;
+  display: flex; align-items: center; gap: 8px;
+}
+.ld-cta-tag::before { content: ''; width: 18px; height: 1px; background: var(--ld-cyan); }
+.ld-cta-assess h2 {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 28px; font-weight: 700; color: var(--ld-white);
+  margin-bottom: 10px; letter-spacing: -0.6px; line-height: 1.2;
+}
+.ld-cta-assess p { font-size: 14px; color: var(--ld-gray-4); line-height: 1.65; max-width: 420px; }
+.ld-cta-right { display: flex; flex-direction: column; align-items: flex-end; gap: 14px; flex-shrink: 0; }
+.ld-cta-mini { display: flex; flex-direction: column; gap: 7px; }
+.ld-mini-card {
+  display: flex; align-items: center; gap: 10px;
+  padding: 9px 13px; border-radius: 9px;
+  background: rgba(0,212,255,0.04); border: 1px solid rgba(0,212,255,0.1);
+  min-width: 210px;
+}
+.ld-mini-icon { font-size: 16px; }
+.ld-mini-text strong { display: block; color: var(--ld-white); font-size: 11px; font-weight: 600; }
+.ld-mini-text span   { color: var(--ld-gray-5); font-size: 10px; }
+.ld-cta-btn {
+  background: var(--ld-cyan); color: var(--ld-bg); border: none;
+  padding: 13px 26px; border-radius: 10px; font-size: 14px; font-weight: 700;
+  cursor: pointer; white-space: nowrap; font-family: 'Space Grotesk', sans-serif;
+  transition: all 0.2s; letter-spacing: -0.2px;
+}
+.ld-cta-btn:hover { box-shadow: 0 0 28px var(--ld-cyan-glow); transform: translateY(-2px); }
+.ld-cta-note { font-size: 10px; color: var(--ld-gray-5); white-space: nowrap; }
+
+/* ── STATS ── */
+.ld-stats {
+  margin: 0 48px 52px;
+  display: grid; grid-template-columns: repeat(4,1fr);
+  border: 1px solid var(--ld-border); border-radius: 14px;
+  overflow: hidden; background: var(--ld-card);
+}
+.ld-stat { padding: 24px; border-right: 1px solid var(--ld-border); text-align: center; }
+.ld-stat:last-child { border-right: none; }
+.ld-stat-num {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 36px; font-weight: 700; color: var(--ld-white); letter-spacing: -1px;
+}
+.ld-stat-num em { font-style: normal; color: var(--ld-cyan); }
+.ld-stat-lbl { font-size: 11px; color: var(--ld-gray-5); font-weight: 500; margin-top: 3px; }
+
+/* ── HOW IT WORKS ── */
+.ld-how {
+  padding: 0 48px 52px;
+  display: grid; grid-template-columns: 1fr 1fr; gap: 48px; align-items: center;
+}
+.ld-how-tag {
+  font-size: 10px; font-weight: 700; color: var(--ld-cyan);
+  text-transform: uppercase; letter-spacing: 0.12em;
+  display: flex; align-items: center; gap: 8px; margin-bottom: 14px;
+}
+.ld-how-tag::before { content: ''; width: 18px; height: 1px; background: var(--ld-cyan); }
+.ld-how h2 {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 30px; font-weight: 700; letter-spacing: -0.7px;
+  margin-bottom: 12px; line-height: 1.2; color: var(--ld-white);
+}
+.ld-how p { font-size: 14px; color: var(--ld-gray-4); line-height: 1.7; margin-bottom: 24px; }
+.ld-steps { display: flex; flex-direction: column; gap: 10px; }
+.ld-step {
+  display: flex; align-items: flex-start; gap: 13px;
+  padding: 14px; border-radius: 11px;
+  background: var(--ld-card); border: 1px solid var(--ld-border);
+  transition: border-color 0.2s;
+}
+.ld-step:hover { border-color: var(--ld-cyan); }
+.ld-step-num {
+  width: 30px; height: 30px; border-radius: 7px; flex-shrink: 0;
+  background: var(--ld-cyan-dim); border: 1px solid rgba(0,212,255,0.28);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 800; color: var(--ld-cyan);
+  font-family: 'Space Grotesk', sans-serif;
+}
+.ld-step h4 { font-size: 13px; font-weight: 600; color: var(--ld-white); margin-bottom: 2px; }
+.ld-step p  { font-size: 11px; color: var(--ld-gray-5); line-height: 1.5; }
+
+/* report preview */
+.ld-report-preview {
+  border-radius: 18px; background: var(--ld-card);
+  border: 1px solid var(--ld-border2); padding: 26px;
+  box-shadow: 0 0 40px rgba(0,212,255,0.06);
+  position: relative; overflow: hidden;
+}
+.ld-report-preview::before {
+  content: ''; position: absolute; top: -50px; right: -50px;
+  width: 180px; height: 180px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(0,212,255,0.07), transparent 70%);
+}
+.ld-rp-label { font-size: 9px; font-weight: 700; color: var(--ld-gray-5); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 18px; }
+.ld-score-ring {
+  width: 100px; height: 100px; border-radius: 50%;
+  border: 6px solid rgba(255,255,255,0.05);
+  border-top-color: var(--ld-cyan); border-right-color: var(--ld-cyan);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  margin: 0 auto 18px;
+}
+.ld-score-val { font-family: 'Space Grotesk', sans-serif; font-size: 28px; font-weight: 700; color: var(--ld-cyan); }
+.ld-score-sub { font-size: 8px; color: var(--ld-gray-5); text-transform: uppercase; letter-spacing: 0.08em; }
+.ld-rec {
+  display: flex; align-items: center; justify-content: center; gap: 5px;
+  background: rgba(16,185,129,0.07); border: 1px solid rgba(16,185,129,0.2);
+  border-radius: 7px; padding: 8px; margin-bottom: 14px;
+  font-size: 11px; font-weight: 700; color: var(--ld-green);
+}
+.ld-bars { display: flex; flex-direction: column; gap: 9px; }
+.ld-bar-row { display: flex; align-items: center; gap: 9px; font-size: 10px; }
+.ld-bar-label { width: 80px; flex-shrink: 0; color: var(--ld-gray-4); }
+.ld-bar-track { flex: 1; height: 4px; border-radius: 2px; background: rgba(255,255,255,0.05); }
+.ld-bar-fill  { height: 4px; border-radius: 2px; }
+.ld-bar-val   { width: 24px; text-align: right; font-weight: 600; color: var(--ld-gray-4); }
+.ld-tags-row  { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 12px; }
+.ld-tag-rp {
+  background: rgba(0,212,255,0.06); color: var(--ld-cyan);
+  border: 1px solid rgba(0,212,255,0.14); border-radius: 5px;
+  padding: 3px 8px; font-size: 10px; font-weight: 600;
+}
+
+/* ── FOOTER ── */
+#page-landing .landing-footer {
+  border-top: 1px solid var(--ld-border);
+  padding: 24px 48px; display: flex; align-items: center; justify-content: space-between;
+  background: none;
+}
+#page-landing .landing-footer .landing-logo { font-size: 18px; }
+#page-landing .landing-footer p { font-size: 11px; color: var(--ld-gray-5); }
+
+/* override seções antigas na landing */
+#page-landing .features, #page-landing .cta-section { display: none !important; }
+#page-landing .jobs-section .section-header { display: none; }
 </style>
 <!-- Supabase JS client (CDN) -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
@@ -716,130 +1119,162 @@ td.bold { font-weight: 700; }
 <div id="page-landing">
   <div class="demo-banner">⚡ Modo Demonstração — Dados Simulados para Testes</div>
   
+  <!-- NAV -->
   <nav class="landing-nav">
-    <div class="landing-logo" onclick="showPage('landing')" style="cursor:pointer;transition:opacity 0.15s" onmouseover="this.style.opacity='0.8'" onmouseout="this.style.opacity='1'" title="Ir para o início">Recruta<span>dorIA</span></div>
+    <div class="landing-logo" onclick="showPage('landing')" style="cursor:pointer" title="Ir para o início">Recruta<span>dorIA</span></div>
+
+    <!-- Search pill estilo Airbnb -->
+    <div class="ld-search-pill">
+      <button class="ld-sf">
+        <span class="ld-sf-label">Área</span>
+        <span class="ld-sf-val">Tecnologia, RH…</span>
+      </button>
+      <button class="ld-sf">
+        <span class="ld-sf-label">Cidade</span>
+        <span class="ld-sf-val">Onde?</span>
+      </button>
+      <button class="ld-sf">
+        <span class="ld-sf-label">Nível</span>
+        <span class="ld-sf-val">Senioridade</span>
+      </button>
+      <button class="ld-search-btn" aria-label="Buscar">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+          <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+        </svg>
+      </button>
+    </div>
+
     <div class="landing-nav-links">
-      <button class="btn btn-outline btn-sm" onclick="iniciarCandidaturaEspontanea()">🧑‍💼 Sou Candidato</button>
       <button class="btn btn-outline btn-sm" onclick="showPage('assessment')">📊 Análise de Perfil</button>
+      <button class="btn btn-outline btn-sm" onclick="iniciarCandidaturaEspontanea()">🧑‍💼 Sou Candidato</button>
       <button id="recruiter-access-btn" class="btn btn-primary btn-sm" onclick="acessarAreaRecrutador()">🔐 Área do Recrutador</button>
     </div>
   </nav>
 
   <!-- HERO -->
   <section class="hero">
-    <div>
-      <div class="hero-badge">🤖 Inteligência Artificial + Cabeça de Dono</div>
-      <h1>Contrate quem <span>Impulsiona</span> a Energia</h1>
-      <p class="hero-sub">O RecrutadorIA usa inteligência artificial baseada na filosofia Cabeça de Dono para encontrar talentos com fit cultural real — não apenas currículo bonito.</p>
-      <div class="hero-actions">
-        <button class="btn btn-primary btn-lg" onclick="showPage('register')">🚀 Começar Agora — Grátis</button>
-        <button class="btn btn-outline btn-lg" onclick="showPage('assessment')">⚡ Analisar Meu Perfil</button>
-      </div>
-    </div>
-    <div class="hero-visual">
-      <div class="hero-visual-label">Score de Fit Cultural</div>
-      <div class="hero-visual-metric">94<small style="font-size:32px">%</small></div>
-      <div class="hero-visual-bars">
-        <div class="hbar"><span class="hbar-label">Cultura</span><div class="hbar-track"><div class="hbar-fill" style="width:94%"></div></div><span class="hbar-val">94</span></div>
-        <div class="hbar"><span class="hbar-label">Mentalidade</span><div class="hbar-track"><div class="hbar-fill" style="width:88%"></div></div><span class="hbar-val">88</span></div>
-        <div class="hbar"><span class="hbar-label">Currículo</span><div class="hbar-track"><div class="hbar-fill" style="width:76%"></div></div><span class="hbar-val">76</span></div>
-        <div class="hbar"><span class="hbar-label">DISC</span><div class="hbar-track"><div class="hbar-fill" style="width:91%"></div></div><span class="hbar-val">D/I</span></div>
-      </div>
-      <div style="border-top:1px solid #333; padding-top:16px">
-        <div style="font-family:'Bebas Neue',sans-serif;font-size:18px;color:var(--orange)">✅ Recomendação: CONTRATAR</div>
-        <div style="font-size:11px;color:#888;margin-top:4px">Próximo: Entrevista com Área Requisitante</div>
-      </div>
-    </div>
+    <div class="hero-badge">IA Comportamental · Cabeça de Dono</div>
+    <h1>O marketplace de<br>vagas <span>inteligente</span></h1>
+    <p class="hero-sub">Conectamos candidatos com fit cultural real às empresas certas — usando inteligência artificial comportamental, não apenas currículo.</p>
   </section>
 
-  <!-- FEATURES -->
-  <section class="features">
-    <div style="text-align:center">
-      <div class="label" style="margin-bottom:12px">Como funciona</div>
-      <h2 class="section-title" style="text-align:center">Recrutamento <span>Inteligente</span></h2>
-    </div>
-    <div class="features-grid">
-      <div class="feature-card">
-        <div class="feature-icon">🎯</div>
-        <div class="feature-title">Diagnóstico da Dor</div>
-        <p class="feature-desc">A IA faz perguntas de clareza ao recrutador para garantir que a vaga está sendo criada com precisão cirúrgica, não por impulso.</p>
-      </div>
-      <div class="feature-card">
-        <div class="feature-icon">🧠</div>
-        <div class="feature-title">Questionários Adaptativos</div>
-        <p class="feature-desc">Q1 (triagem cultural com 20 perguntas) e Q2 (mentalidade com 10 perguntas abertas) gerados pela IA com base na vaga e cultura da empresa.</p>
-      </div>
-      <div class="feature-card">
-        <div class="feature-icon">📚</div>
-        <div class="feature-title">Base de Conhecimento</div>
-        <p class="feature-desc">Alimente a IA com manuais, cultura e processos da sua empresa. Quanto mais contexto, mais assertivas são as perguntas e avaliações.</p>
-      </div>
-      <div class="feature-card">
-        <div class="feature-icon">⚡</div>
-        <div class="feature-title">Análise DISC + STAR</div>
-        <p class="feature-desc">Cada resposta é avaliada com Método STAR e perfil DISC. A IA identifica quem "impulsiona energia" e quem "drena energia".</p>
-      </div>
-      <div class="feature-card">
-        <div class="feature-icon">📈</div>
-        <div class="feature-title">Aprendizado Contínuo</div>
-        <p class="feature-desc">A IA aprende com cada processo. Candidatos contratados, feedbacks dos recrutadores e avaliações 90 dias treinam o sistema continuamente.</p>
-      </div>
-      <div class="feature-card">
-        <div class="feature-icon">🔒</div>
-        <div class="feature-title">Segurança Total</div>
-        <p class="feature-desc">Dados isolados por empresa, autenticação JWT, auditoria completa e regras de acesso rigorosas no Supabase (RLS).</p>
-      </div>
-    </div>
-  </section>
+  <!-- CATEGORIES -->
+  <div class="ld-categories">
+    <div class="ld-chip active">⭐ Destaque</div>
+    <div class="ld-chip">💻 Tecnologia</div>
+    <div class="ld-chip">📈 Comercial</div>
+    <div class="ld-chip">💰 Financeiro</div>
+    <div class="ld-chip">🎨 Marketing</div>
+    <div class="ld-chip">👥 RH &amp; Pessoas</div>
+    <div class="ld-chip">⚙️ Operações</div>
+    <div class="ld-chip">📊 Dados &amp; BI</div>
+    <div class="ld-chip">🏗️ Engenharia</div>
+  </div>
 
-  <!-- JOBS -->
+  <!-- SECTION HEADER -->
+  <div class="ld-section-header">
+    <h2>Vagas em destaque</h2>
+    <a onclick="showPage('vagas-candidato')">Ver todas →</a>
+  </div>
+
+  <!-- JOBS GRID — renderizado por JS -->
   <section class="jobs-section">
-    <div class="section-header">
-      <div>
-        <h2 class="section-title">Vagas em <span>Destaque</span></h2>
-        <p class="label" style="margin-top:6px">Oportunidades para quem quer crescer</p>
-      </div>
-    </div>
     <div class="jobs-grid" id="landing-jobs-grid">
-      <!-- Jobs rendered by JS -->
+      <!-- Cards renderizados por initLandingJobs() -->
     </div>
   </section>
 
-  <!-- CTA -->
-  <section class="cta-section">
+  <!-- ASSESSMENT CTA — logo após as vagas -->
+  <div class="ld-cta-assess">
     <div>
-      <h2 class="cta-title">Para Candidatos: Descubra seu <span>Perfil Ideal</span></h2>
-      <p class="cta-sub">Mesmo sem vagas abertas, analise seu perfil comportamental gratuitamente. A IA sugere cargos e áreas onde você tem maior chance de brilhar.</p>
-      <button class="btn btn-orange btn-lg" onclick="showPage('assessment')">⚡ Iniciar Análise Grátis</button>
+      <div class="ld-cta-tag">Gratuito · Sem cadastro · 5 minutos</div>
+      <h2>Descubra seu perfil<br>comportamental agora</h2>
+      <p>20 questões adaptativas geradas por IA com base na sua área. Receba perfil DISC, pontos fortes, cargos recomendados e sugestões para o LinkedIn.</p>
     </div>
-    <div class="cta-steps">
-      <div class="cta-step">
-        <div class="cta-step-num">1</div>
-        <div class="cta-step-text">
-          <h4>Envie seu currículo (PDF/DOCX)</h4>
-          <p>A IA extrai suas experiências e habilidades automaticamente.</p>
+    <div class="ld-cta-right">
+      <div class="ld-cta-mini">
+        <div class="ld-mini-card">
+          <span class="ld-mini-icon">🎯</span>
+          <div class="ld-mini-text"><strong>Score comportamental</strong><span>Calculado pela IA em tempo real</span></div>
+        </div>
+        <div class="ld-mini-card">
+          <span class="ld-mini-icon">📊</span>
+          <div class="ld-mini-text"><strong>Perfil DISC completo</strong><span>Pontos fortes e áreas de crescimento</span></div>
+        </div>
+        <div class="ld-mini-card">
+          <span class="ld-mini-icon">💼</span>
+          <div class="ld-mini-text"><strong>LinkedIn otimizado pela IA</strong><span>Headline, Sobre e palavras-chave</span></div>
         </div>
       </div>
-      <div class="cta-step">
-        <div class="cta-step-num">2</div>
-        <div class="cta-step-text">
-          <h4>Responda 20 perguntas situacionais</h4>
-          <p>Cenários reais que revelam seu comportamento genuíno.</p>
+      <button class="ld-cta-btn" onclick="showPage('assessment')">⚡ Analisar meu perfil →</button>
+      <div class="ld-cta-note">Mais de 12.000 perfis analisados</div>
+    </div>
+  </div>
+
+  <!-- STATS -->
+  <div class="ld-stats">
+    <div class="ld-stat"><div class="ld-stat-num">12<em>k+</em></div><div class="ld-stat-lbl">Candidatos avaliados</div></div>
+    <div class="ld-stat"><div class="ld-stat-num">94<em>%</em></div><div class="ld-stat-lbl">Assertividade da IA</div></div>
+    <div class="ld-stat"><div class="ld-stat-num">320<em>+</em></div><div class="ld-stat-lbl">Empresas cadastradas</div></div>
+    <div class="ld-stat"><div class="ld-stat-num">48<em>h</em></div><div class="ld-stat-lbl">Tempo médio p/ contratar</div></div>
+  </div>
+
+  <!-- HOW IT WORKS + REPORT PREVIEW -->
+  <div class="ld-how">
+    <div>
+      <div class="ld-how-tag">Como funciona</div>
+      <h2>Recrutamento baseado<br>em dados reais.</h2>
+      <p>Substituímos opiniões subjetivas por análise comportamental quantificada. A IA avalia como o candidato pensa e age — não apenas o que ele escreveu no currículo.</p>
+      <div class="ld-steps">
+        <div class="ld-step">
+          <div class="ld-step-num">1</div>
+          <div><h4>Vaga criada com diagnóstico da dor</h4><p>IA faz perguntas de clareza para garantir precisão no perfil desejado.</p></div>
         </div>
-      </div>
-      <div class="cta-step">
-        <div class="cta-step-num">3</div>
-        <div class="cta-step-text">
-          <h4>Receba análise completa da IA</h4>
-          <p>Pontos fortes, áreas de melhoria e cargos recomendados.</p>
+        <div class="ld-step">
+          <div class="ld-step-num">2</div>
+          <div><h4>Candidatos respondem 20 + 10 questões</h4><p>Questionários adaptativos personalizados para cada vaga e empresa.</p></div>
+        </div>
+        <div class="ld-step">
+          <div class="ld-step-num">3</div>
+          <div><h4>Relatório executivo instantâneo</h4><p>Score, DISC, pontos fortes e 10 questões para a entrevista presencial.</p></div>
         </div>
       </div>
     </div>
-  </section>
+    <div class="ld-report-preview">
+      <div class="ld-rp-label">Exemplo de relatório IA</div>
+      <div class="ld-score-ring">
+        <div class="ld-score-val">94</div>
+        <div class="ld-score-sub">Fit Score</div>
+      </div>
+      <div class="ld-rec">✅ Recomendação: CONTRATAR</div>
+      <div class="ld-bars">
+        <div class="ld-bar-row">
+          <span class="ld-bar-label">Q1 — Cultura</span>
+          <div class="ld-bar-track"><div class="ld-bar-fill" style="width:92%;background:#00D4FF"></div></div>
+          <span class="ld-bar-val">92</span>
+        </div>
+        <div class="ld-bar-row">
+          <span class="ld-bar-label">Q2 — Mentalidade</span>
+          <div class="ld-bar-track"><div class="ld-bar-fill" style="width:88%;background:#3B82F6"></div></div>
+          <span class="ld-bar-val">88</span>
+        </div>
+        <div class="ld-bar-row">
+          <span class="ld-bar-label">Perfil DISC</span>
+          <div class="ld-bar-track"><div class="ld-bar-fill" style="width:76%;background:#8B5CF6"></div></div>
+          <span class="ld-bar-val" style="color:#8B5CF6">D/I</span>
+        </div>
+      </div>
+      <div class="ld-tags-row">
+        <span class="ld-tag-rp">Liderança</span>
+        <span class="ld-tag-rp">Resiliência</span>
+        <span class="ld-tag-rp">Cabeça de Dono</span>
+      </div>
+    </div>
+  </div>
 
   <footer class="landing-footer">
-    <div class="landing-logo" onclick="showPage('landing');window.scrollTo(0,0)" style="font-family:'Bebas Neue',sans-serif;font-size:24px;letter-spacing:0.05em;cursor:pointer" title="Voltar ao início">Recruta<span style="color:var(--orange)">dorIA</span></div>
-    <div style="font-size:11px;color:var(--gray-300);font-weight:700;text-transform:uppercase;letter-spacing:0.1em">© 2026 RecrutadorIA — Todos os direitos reservados</div>
+    <div class="landing-logo" onclick="showPage('landing');window.scrollTo(0,0)" style="cursor:pointer" title="Voltar ao início">Recruta<span>dorIA</span></div>
+    <p>© 2026 RecrutadorIA · paineldevagas.com.br · Powered by Claude AI</p>
   </footer>
 </div>
 
@@ -4222,25 +4657,57 @@ async function adminChangePwd() {
 async function initLandingJobs() {
   let jobs = [];
   if (DEMO_MODE) {
-    jobs = DEMO_JOBS.slice(0, 4);
+    jobs = DEMO_JOBS.slice(0, 6);
   } else {
-    const { data } = await _sb.from('jobs').select('id,title,seniority_level,activities,must_have,city,company_id,companies(name)').eq('status','active').order('created_at',{ascending:false}).limit(4);
+    const { data } = await _sb.from('jobs').select('id,title,seniority_level,activities,must_have,city,company_id,companies(name)').eq('status','active').order('created_at',{ascending:false}).limit(6);
     jobs = data || [];
   }
   const grid = document.getElementById('landing-jobs-grid');
   if (!grid) return;
-  if (!jobs.length) { grid.innerHTML = '<p style="grid-column:1/-1;text-align:center;color:var(--gray-500);padding:40px">Nenhuma vaga aberta no momento.</p>'; return; }
-  grid.innerHTML = jobs.map(j => `
-    <div class="job-card">
-      <div class="job-card-top"><span class="job-dept">${sanitize(j.companies?.name||j.company_name||'Empresa')}</span><span class="badge badge-green">Aberta</span></div>
-      <div class="job-title">${sanitize(j.title)}</div>
-      <p class="job-desc">${sanitize((j.activities||'').substring(0,100))}...</p>
-      <div class="job-meta">
-        <span class="job-meta-item">📍 ${sanitize(j.city||'A definir')}</span>
-        <span class="job-meta-item">🎯 ${sanitize(j.seniority_level||'')}</span>
+  if (!jobs.length) {
+    grid.innerHTML = '<p style="grid-column:1/-1;text-align:center;color:#64748B;padding:48px;font-family:Inter,sans-serif">Nenhuma vaga aberta no momento.</p>';
+    return;
+  }
+
+  // Paleta de cores para os cards (barra + glow)
+  const bars  = ['ld-bar-cyan','ld-bar-blue','ld-bar-purple','ld-bar-green','ld-bar-cyan','ld-bar-blue'];
+  const glows = ['','glow-blue','glow-purple','glow-green','','glow-blue'];
+  const badges= ['new','','urgent','','new','hot'];
+  const badgeTxt = { new:'Novo', urgent:'Urgente', hot:'Popular' };
+  const fitLvl = ['high','med','high','med','high','med'];
+  const fitTxt = { high:'Alta aderência', med:'Boa aderência' };
+
+  grid.innerHTML = jobs.map((j, i) => {
+    const company = sanitizeAI(j.companies?.name || j.company_name || 'Empresa');
+    const initial = (j.companies?.name || j.company_name || 'E')[0].toUpperCase();
+    const badge   = badges[i % badges.length];
+    const fit     = fitLvl[i % fitLvl.length];
+    const badgeHtml = badge ? `<div class="ld-card-badge ld-badge-${badge}">${badgeTxt[badge]}</div>` : '';
+    const mustHaveArr = j.must_have || [];
+    const extraTag = mustHaveArr.length ? `<span class="ld-tag">${sanitizeAI(mustHaveArr[0])}</span>` : '';
+    return `
+    <div class="ld-job-card" onclick="iniciarCandidatura('${j.id}')">
+      <div class="ld-card-bar ${bars[i % bars.length]}"></div>
+      <div class="ld-card-visual ${glows[i % glows.length]}">
+        <div class="ld-card-initial">${initial}</div>
+        ${badgeHtml}
+        <div class="ld-card-save" onclick="event.stopPropagation()">♡</div>
       </div>
-      <button class="btn btn-primary" style="width:100%;justify-content:center" onclick="iniciarCandidatura('${j.id}')">Candidatar-se →</button>
-    </div>`).join('');
+      <div class="ld-card-body">
+        <div class="ld-card-company">${company} · ${sanitizeAI(j.city||'A definir')}</div>
+        <div class="ld-card-title">${sanitizeAI(j.title)}</div>
+        <div class="ld-card-tags">
+          <span class="ld-tag">${sanitizeAI(j.seniority_level||'Pleno')}</span>
+          ${extraTag}
+          <span class="ld-tag ld-tag-match">🤖 Compatível</span>
+        </div>
+        <div class="ld-card-footer">
+          <div class="ld-fit"><div class="ld-fit-dot ${fit}"></div>${fitTxt[fit]}</div>
+          <button class="ld-card-action" onclick="event.stopPropagation();iniciarCandidatura('${j.id}')">Candidatar →</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
 }
 
 // Acessa a área do recrutador: vai direto ao painel se já autenticado, senão vai para login
