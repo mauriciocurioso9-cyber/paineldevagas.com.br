@@ -2127,6 +2127,34 @@ td.bold { font-weight: 700; }
         <div id="as-result-content"></div>
         <!-- Ações pós-análise: renderizadas pela IA após avaliação completa -->
         <div id="as-post-actions" class="hidden" style="margin-top:28px">
+
+          <!-- LinkedIn Improvement — pergunta ao candidato -->
+          <div style="border:2px solid var(--black);padding:20px;background:var(--black);color:var(--white);margin-bottom:20px">
+            <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.2em;color:var(--orange);margin-bottom:10px">💼 Melhore seu LinkedIn com IA</div>
+            <p style="font-size:13px;color:var(--gray-200);line-height:1.7;margin-bottom:16px">
+              Com base na sua avaliação comportamental, a IA pode sugerir melhorias personalizadas para o seu perfil no LinkedIn — headline, sobre, palavras-chave e posicionamento para a sua área.
+            </p>
+            <div id="as-linkedin-form">
+              <div style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap">
+                <div style="flex:1;min-width:240px">
+                  <div style="font-size:10px;font-weight:700;color:var(--gray-400);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:6px">Seu perfil no LinkedIn (opcional)</div>
+                  <input class="form-input" id="as-linkedin-url"
+                    placeholder="linkedin.com/in/seu-nome"
+                    style="background:#1a1a1a;border-color:#333;color:#fff" />
+                </div>
+                <button class="btn btn-primary" onclick="asAnalyzeLinkedIn()" id="as-linkedin-btn">
+                  <span id="as-linkedin-btn-text">Analisar meu LinkedIn →</span>
+                  <div class="spinner hidden" id="as-linkedin-spinner"></div>
+                </button>
+              </div>
+              <p style="font-size:11px;color:var(--gray-500);margin-top:8px">
+                Não tem LinkedIn ainda? A IA vai sugerir como criar um perfil forte para sua área.
+              </p>
+            </div>
+            <!-- Resultado da análise de LinkedIn -->
+            <div id="as-linkedin-result" class="hidden" style="margin-top:16px;border-top:1px solid #222;padding-top:16px"></div>
+          </div>
+
           <div style="border:2px solid var(--orange);padding:20px;background:var(--gray-50);margin-bottom:20px">
             <div style="font-size:13px;font-weight:700;margin-bottom:8px">🎯 Próximos Passos</div>
             <p style="font-size:13px;color:var(--gray-600);line-height:1.7;margin-bottom:16px">
@@ -5413,6 +5441,13 @@ function initAssessment() {
   document.getElementById('as-post-actions')?.classList.add('hidden');
   document.getElementById('as-s-dados')?.classList.add('hidden');
   document.getElementById('as-dados-alert') && (document.getElementById('as-dados-alert').innerHTML = '');
+  // Reset LinkedIn section
+  const liUrl = document.getElementById('as-linkedin-url');
+  if (liUrl) liUrl.value = '';
+  const liResult = document.getElementById('as-linkedin-result');
+  if (liResult) { liResult.classList.add('hidden'); liResult.innerHTML = ''; }
+  const liForm = document.getElementById('as-linkedin-form');
+  if (liForm) liForm.style.display = 'block';
 }
 
 function asGoTo(step) {
@@ -5727,6 +5762,118 @@ Gere avaliação completa. Responda SOMENTE em JSON minificado (sem markdown):
     if (deep) deep.innerHTML = `<div style="font-size:12px;color:rgba(255,255,255,0.5)">IA indisponível: ${sanitize(err || 'configure a chave de API')}</div>`;
     // Mesmo com erro na IA, libera o botão de vagas
     document.getElementById('as-post-actions')?.classList.remove('hidden');
+  });
+}
+
+// ── Análise de LinkedIn com base no perfil comportamental ───────
+async function asAnalyzeLinkedIn() {
+  const linkedinUrl = (document.getElementById('as-linkedin-url')?.value || '').trim();
+  const name  = STATE.asName  || 'Candidato';
+  const area  = STATE.asArea  || '—';
+  const score = STATE.asScore || 0;
+  const disc  = STATE.asDisc  || '—';
+  const ai    = STATE.asAIResult || {};
+  const strengths  = (STATE.asStrengths  || []).join(', ') || '—';
+  const weaknesses = (STATE.asWeaknesses || []).join(', ') || 'Nenhuma';
+
+  showSpinner('as-linkedin-spinner','as-linkedin-btn-text','Analisando...');
+  const resultEl = document.getElementById('as-linkedin-result');
+  if (resultEl) { resultEl.classList.remove('hidden'); resultEl.innerHTML = '<div style="font-size:12px;color:#888;padding:8px 0">🤖 A IA está preparando suas sugestões personalizadas...</div>'; }
+
+  const hasLinkedin = linkedinUrl && linkedinUrl.length > 5;
+  const linkedinCtx = hasLinkedin
+    ? `Perfil LinkedIn informado: ${linkedinUrl}`
+    : 'Candidato não informou perfil no LinkedIn (sugerir criação do zero).';
+
+  const perfil    = ai.perfil      || '';
+  const cargos    = ai.cargos      || '';
+  const comportamento = ai.comportamento || '';
+
+  const prompt = `Você é especialista em LinkedIn e personal branding para profissionais brasileiros.
+
+CANDIDATO: ${sanitize(name)}
+ÁREA DE ATUAÇÃO: ${sanitize(area)}
+SCORE COMPORTAMENTAL: ${score}% | PERFIL DISC: ${disc}
+PONTOS FORTES: ${sanitize(strengths)}
+ÁREAS DE DESENVOLVIMENTO: ${sanitize(weaknesses)}
+AVALIAÇÃO IA: ${sanitize(perfil)}
+CARGOS RECOMENDADOS: ${sanitize(cargos)}
+COMPORTAMENTO: ${sanitize(comportamento)}
+${linkedinCtx}
+
+Com base nessa avaliação comportamental, gere sugestões práticas e personalizadas para o perfil LinkedIn deste candidato.
+
+Responda SOMENTE em JSON minificado:
+{
+  "headline": "sugestão de headline profissional (até 120 chars, use palavras-chave da área)",
+  "sobre": "sugestão do texto 'Sobre' (3-4 frases, primeira pessoa, destacando pontos fortes comportamentais e cargos alvo)",
+  "palavras_chave": ["kw1","kw2","kw3","kw4","kw5"],
+  "experiencias": "dica de como descrever experiências com foco em resultados (2-3 frases)",
+  "dica_foto": "dica rápida sobre foto e banner (1 frase)",
+  "acoes": ["acao1","acao2","acao3"]
+}`;
+
+  callAI(prompt, 2000, (text) => {
+    hideSpinner('as-linkedin-spinner','as-linkedin-btn-text','Analisar meu LinkedIn →');
+    const parsed = parseAIJson(text);
+    if (!resultEl) return;
+    if (!parsed) {
+      resultEl.innerHTML = '<div style="font-size:12px;color:#ef4444">Não foi possível gerar sugestões agora. Tente novamente.</div>';
+      return;
+    }
+    const kwTags = (parsed.palavras_chave || [])
+      .map(k => `<span style="background:#1a1a1a;border:1px solid #333;border-radius:3px;padding:2px 8px;font-size:11px;color:var(--orange)">${sanitizeAI(k)}</span>`)
+      .join(' ');
+    const actions = (parsed.acoes || [])
+      .map((a,i) => `<div style="margin-bottom:8px;display:flex;gap:8px;align-items:flex-start"><span style="color:var(--orange);font-weight:700;flex-shrink:0">${i+1}.</span><span style="font-size:12px;color:var(--gray-200)">${sanitizeAI(a)}</span></div>`)
+      .join('');
+
+    resultEl.innerHTML = `
+      <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.15em;color:var(--orange);margin-bottom:14px">
+        ✨ Sugestões Personalizadas para o LinkedIn
+      </div>
+      ${parsed.headline ? `
+        <div style="margin-bottom:14px">
+          <div style="font-size:10px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:4px">📌 Headline Sugerida</div>
+          <div style="background:#1a1a1a;border-left:3px solid var(--orange);padding:10px 14px;font-size:13px;color:#fff;line-height:1.5">${sanitizeAI(parsed.headline)}</div>
+        </div>` : ''}
+      ${parsed.sobre ? `
+        <div style="margin-bottom:14px">
+          <div style="font-size:10px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:4px">💬 Seção "Sobre" Sugerida</div>
+          <div style="background:#1a1a1a;border-left:3px solid #3b82f6;padding:10px 14px;font-size:12px;color:var(--gray-200);line-height:1.7">${sanitizeAI(parsed.sobre)}</div>
+        </div>` : ''}
+      ${kwTags ? `
+        <div style="margin-bottom:14px">
+          <div style="font-size:10px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:6px">🔑 Palavras-chave Essenciais</div>
+          <div style="display:flex;flex-wrap:wrap;gap:6px">${kwTags}</div>
+        </div>` : ''}
+      ${parsed.experiencias ? `
+        <div style="margin-bottom:14px">
+          <div style="font-size:10px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:4px">💼 Como Descrever Experiências</div>
+          <div style="font-size:12px;color:var(--gray-300);line-height:1.7;padding:8px 0">${sanitizeAI(parsed.experiencias)}</div>
+        </div>` : ''}
+      ${parsed.dica_foto ? `
+        <div style="margin-bottom:14px;padding:8px 12px;background:#111;border:1px solid #222;font-size:11px;color:#888">
+          📸 ${sanitizeAI(parsed.dica_foto)}
+        </div>` : ''}
+      ${actions ? `
+        <div style="margin-bottom:8px">
+          <div style="font-size:10px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:8px">🚀 Próximas Ações</div>
+          ${actions}
+        </div>` : ''}
+      <button class="btn btn-outline btn-sm" style="margin-top:12px;border-color:#333;color:#888;font-size:11px"
+        onclick="document.getElementById('as-linkedin-result').classList.add('hidden');document.getElementById('as-linkedin-form').style.display='block'">
+        ← Tentar com outra URL
+      </button>`;
+
+    // Esconde o formulário após gerar resultado
+    const form = document.getElementById('as-linkedin-form');
+    if (form) form.style.display = 'none';
+    window.scrollTo(0, document.body.scrollHeight);
+
+  }, (err) => {
+    hideSpinner('as-linkedin-spinner','as-linkedin-btn-text','Analisar meu LinkedIn →');
+    if (resultEl) resultEl.innerHTML = `<div style="font-size:12px;color:#ef4444">Erro: ${sanitize(err || 'IA indisponível')}. Tente novamente.</div>`;
   });
 }
 
