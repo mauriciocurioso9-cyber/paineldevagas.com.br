@@ -1,36 +1,31 @@
 /**
  * RecrutadorIA — AI Proxy Edge Function
  *
- * Propósito: manter chaves de API NO SERVIDOR, nunca expô-las ao browser.
- * O frontend chama esta função via Supabase client; a função chama o provider
- * de IA com a chave secreta armazenada em variáveis de ambiente do Supabase.
+ * Mantém as chaves de IA no servidor. Tenta os provedores em cascata
+ * (preferido primeiro, depois os demais) e usa o primeiro que responder —
+ * assim, se um provedor estiver sem cota/indisponível, outro atende.
  *
- * Deploy:
- *   supabase functions deploy ai-proxy --no-verify-jwt
- *
- * Variáveis de ambiente (definir em Supabase Dashboard > Functions > Secrets):
- *   ANTHROPIC_API_KEY   → console.anthropic.com
- *   OPENAI_API_KEY      → platform.openai.com      (opcional)
- *   GEMINI_API_KEY      → aistudio.google.com       (opcional)
- *   AI_PROVIDER         → "anthropic" | "openai" | "gemini"  (default: anthropic)
- *   RATE_LIMIT_RPM      → chamadas por minuto por IP (default: 20)
+ * Secrets (Supabase > Functions > Secrets):
+ *   ANTHROPIC_API_KEY, OPENAI_API_KEY, GEMINI_API_KEY
+ *   AI_PROVIDER      → provedor preferido: "anthropic" | "gemini" | "openai" (default: anthropic)
+ *   ANTHROPIC_MODEL  → default "claude-3-5-haiku-latest"
+ *   GEMINI_MODEL     → default "gemini-2.0-flash"
+ *   RATE_LIMIT_RPM   → chamadas por minuto por IP (default: 20)
+ *   ALLOWED_ORIGINS  → origens permitidas no CORS (lista separada por vírgula)
  */
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
-// ─── Tipos ────────────────────────────────────────────────────────────────────
 interface AIRequest {
   prompt: string;
   max_tokens?: number;
   system?: string;
-  job_context?: Record<string, unknown>;  // contexto extra (vaga, empresa)
+  job_context?: Record<string, unknown>;
 }
 
 interface RateLimitEntry { count: number; reset: number; }
 
-// ─── CORS: origens permitidas ────────────────────────────────────────────────
-// Configurável via secret ALLOWED_ORIGINS (lista separada por vírgula).
-// Default: domínios de produção do paineldevagas.com.br.
+// ─── CORS ─────────────────────────────────────────────────────────────────────
 const ALLOWED_ORIGINS = (Deno.env.get("ALLOWED_ORIGINS")
   ?? "https://www.paineldevagas.com.br,https://paineldevagas.com.br")
   .split(",").map((o) => o.trim()).filter(Boolean);
@@ -40,7 +35,7 @@ function corsOrigin(req: Request): string {
   return ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0];
 }
 
-// ─── Rate limiting em memória (por IP, reinicia a cada minuto) ────────────────
+// ─── Rate limiting em memória (por IP) ─────────────────────────────────────────
 const rateLimitMap = new Map<string, RateLimitEntry>();
 const RATE_LIMIT = parseInt(Deno.env.get("RATE_LIMIT_RPM") ?? "20");
 
@@ -56,19 +51,18 @@ function checkRateLimit(ip: string): boolean {
   return true;
 }
 
-// ─── Sanitização básica do prompt ─────────────────────────────────────────────
 function sanitizePrompt(text: string): string {
   return text
     .replace(/<script[\s\S]*?<\/script>/gi, "")
     .replace(/javascript:/gi, "")
-    .slice(0, 8000);  // limite de segurança
+    .slice(0, 8000);
 }
 
-// ─── Providers ────────────────────────────────────────────────────────────────
+// ─── Providers ──────────────────────────────────────────────────────────────
 async function callAnthropic(prompt: string, maxTokens: number, system: string): Promise<string> {
   const key = Deno.env.get("ANTHROPIC_API_KEY");
   if (!key) throw new Error("ANTHROPIC_API_KEY não configurada.");
-
+  const model = Deno.env.get("ANTHROPIC_MODEL") ?? "claude-3-5-haiku-latest";
   const res = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
     headers: {
@@ -77,18 +71,16 @@ async function callAnthropic(prompt: string, maxTokens: number, system: string):
       "content-type": "application/json",
     },
     body: JSON.stringify({
-      model: "claude-haiku-4-5",
+      model,
       max_tokens: maxTokens,
       system,
       messages: [{ role: "user", content: prompt }],
     }),
   });
-
   if (!res.ok) {
     const err = await res.text();
     throw new Error(`Anthropic API error ${res.status}: ${err}`);
   }
-
   const data = await res.json();
   return data.content?.[0]?.text ?? "";
 }
@@ -96,7 +88,7 @@ async function callAnthropic(prompt: string, maxTokens: number, system: string):
 async function callOpenAI(prompt: string, maxTokens: number, system: string): Promise<string> {
   const key = Deno.env.get("OPENAI_API_KEY");
   if (!key) throw new Error("OPENAI_API_KEY não configurada.");
-
+  const model = Deno.env.get("OPENAI_MODEL") ?? "gpt-4o-mini";
   const res = await fetch("https://api.openai.com/v1/chat/completions", {
     method: "POST",
     headers: {
@@ -104,7 +96,7 @@ async function callOpenAI(prompt: string, maxTokens: number, system: string): Pr
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      model: "gpt-4o-mini",
+      model,
       max_tokens: maxTokens,
       messages: [
         { role: "system", content: system },
@@ -112,12 +104,10 @@ async function callOpenAI(prompt: string, maxTokens: number, system: string): Pr
       ],
     }),
   });
-
   if (!res.ok) {
     const err = await res.text();
     throw new Error(`OpenAI API error ${res.status}: ${err}`);
   }
-
   const data = await res.json();
   return data.choices?.[0]?.message?.content ?? "";
 }
@@ -125,8 +115,8 @@ async function callOpenAI(prompt: string, maxTokens: number, system: string): Pr
 async function callGemini(prompt: string, maxTokens: number, system: string): Promise<string> {
   const key = Deno.env.get("GEMINI_API_KEY");
   if (!key) throw new Error("GEMINI_API_KEY não configurada.");
-
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${key}`;
+  const model = Deno.env.get("GEMINI_MODEL") ?? "gemini-2.5-flash";
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`;
   const res = await fetch(url, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -135,19 +125,36 @@ async function callGemini(prompt: string, maxTokens: number, system: string): Pr
       generationConfig: { maxOutputTokens: maxTokens },
     }),
   });
-
   if (!res.ok) {
     const err = await res.text();
     throw new Error(`Gemini API error ${res.status}: ${err}`);
   }
-
   const data = await res.json();
   return data.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
 }
 
-// ─── Handler principal ────────────────────────────────────────────────────────
+const PROVIDERS: Record<string, (p: string, m: number, s: string) => Promise<string>> = {
+  anthropic: callAnthropic,
+  gemini:    callGemini,
+  openai:    callOpenAI,
+};
+
+// Ordem de tentativa: provedor preferido + os demais que tenham chave configurada.
+function providerOrder(): string[] {
+  const preferred = (Deno.env.get("AI_PROVIDER") ?? "anthropic").toLowerCase();
+  const hasKey: Record<string, boolean> = {
+    anthropic: !!Deno.env.get("ANTHROPIC_API_KEY"),
+    gemini:    !!Deno.env.get("GEMINI_API_KEY"),
+    openai:    !!Deno.env.get("OPENAI_API_KEY"),
+  };
+  const order = [preferred, "anthropic", "gemini", "openai"]
+    .filter((p, i, arr) => arr.indexOf(p) === i)  // remove duplicados
+    .filter((p) => PROVIDERS[p] && hasKey[p]);     // só provedores com chave
+  return order;
+}
+
+// ─── Handler ────────────────────────────────────────────────────────────────
 serve(async (req: Request) => {
-  // CORS preflight
   const allowOrigin = corsOrigin(req);
   if (req.method === "OPTIONS") {
     return new Response(null, {
@@ -167,7 +174,6 @@ serve(async (req: Request) => {
   };
 
   try {
-    // ── Rate limit por IP ──────────────────────────────────────────────────
     const ip = req.headers.get("x-forwarded-for") ?? "unknown";
     if (!checkRateLimit(ip)) {
       return new Response(
@@ -176,7 +182,6 @@ serve(async (req: Request) => {
       );
     }
 
-    // ── Valida Content-Type ────────────────────────────────────────────────
     if (!req.headers.get("content-type")?.includes("application/json")) {
       return new Response(
         JSON.stringify({ error: "Content-Type deve ser application/json." }),
@@ -184,7 +189,6 @@ serve(async (req: Request) => {
       );
     }
 
-    // ── Parse body ────────────────────────────────────────────────────────
     let body: AIRequest;
     try {
       body = await req.json();
@@ -211,35 +215,32 @@ serve(async (req: Request) => {
       "Responda sempre em português brasileiro. Seja preciso, direto e analítico."
     );
 
-    // ── Seleciona provider (auto-detect se AI_PROVIDER não setado) ────────
-    let provider = (Deno.env.get("AI_PROVIDER") ?? "").toLowerCase();
-    if (!provider) {
-      if (Deno.env.get("GEMINI_API_KEY"))    provider = "gemini";
-      else if (Deno.env.get("ANTHROPIC_API_KEY")) provider = "anthropic";
-      else if (Deno.env.get("OPENAI_API_KEY"))    provider = "openai";
-      else throw new Error("Nenhuma chave de IA configurada. Configure GEMINI_API_KEY, ANTHROPIC_API_KEY ou OPENAI_API_KEY.");
-    }
-    console.log(`[ai-proxy] Usando provider: ${provider}`);
-
-    let text: string;
-    switch (provider) {
-      case "openai":
-        text = await callOpenAI(cleanPrompt, max_tokens, cleanSystem);
-        break;
-      case "gemini":
-        text = await callGemini(cleanPrompt, max_tokens, cleanSystem);
-        break;
-      case "anthropic":
-        text = await callAnthropic(cleanPrompt, max_tokens, cleanSystem);
-        break;
-      default:
-        throw new Error(`Provider desconhecido: ${provider}`);
+    const order = providerOrder();
+    if (order.length === 0) {
+      throw new Error("Nenhuma chave de IA configurada (ANTHROPIC_API_KEY, GEMINI_API_KEY ou OPENAI_API_KEY).");
     }
 
-    return new Response(
-      JSON.stringify({ text, provider }),
-      { status: 200, headers: corsHeaders }
-    );
+    // Tenta cada provedor na ordem; usa o primeiro que responder.
+    const errors: string[] = [];
+    for (const provider of order) {
+      try {
+        const text = await PROVIDERS[provider](cleanPrompt, max_tokens, cleanSystem);
+        if (text && text.trim()) {
+          return new Response(
+            JSON.stringify({ text, provider }),
+            { status: 200, headers: corsHeaders }
+          );
+        }
+        errors.push(`${provider}: resposta vazia`);
+      } catch (e) {
+        const msg = e instanceof Error ? e.message : String(e);
+        console.error(`[ai-proxy] Falha no provider ${provider}:`, msg);
+        errors.push(`${provider}: ${msg}`);
+      }
+    }
+
+    // Todos falharam
+    throw new Error(`Todos os provedores de IA falharam. ${errors.join(" | ")}`);
 
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : String(err);
