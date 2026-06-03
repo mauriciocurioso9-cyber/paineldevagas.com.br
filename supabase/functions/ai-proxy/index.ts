@@ -28,6 +28,18 @@ interface AIRequest {
 
 interface RateLimitEntry { count: number; reset: number; }
 
+// ─── CORS: origens permitidas ────────────────────────────────────────────────
+// Configurável via secret ALLOWED_ORIGINS (lista separada por vírgula).
+// Default: domínios de produção do paineldevagas.com.br.
+const ALLOWED_ORIGINS = (Deno.env.get("ALLOWED_ORIGINS")
+  ?? "https://www.paineldevagas.com.br,https://paineldevagas.com.br")
+  .split(",").map((o) => o.trim()).filter(Boolean);
+
+function corsOrigin(req: Request): string {
+  const origin = req.headers.get("origin") ?? "";
+  return ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0];
+}
+
 // ─── Rate limiting em memória (por IP, reinicia a cada minuto) ────────────────
 const rateLimitMap = new Map<string, RateLimitEntry>();
 const RATE_LIMIT = parseInt(Deno.env.get("RATE_LIMIT_RPM") ?? "20");
@@ -136,18 +148,21 @@ async function callGemini(prompt: string, maxTokens: number, system: string): Pr
 // ─── Handler principal ────────────────────────────────────────────────────────
 serve(async (req: Request) => {
   // CORS preflight
+  const allowOrigin = corsOrigin(req);
   if (req.method === "OPTIONS") {
     return new Response(null, {
       headers: {
-        "Access-Control-Allow-Origin":  "*",
+        "Access-Control-Allow-Origin":  allowOrigin,
         "Access-Control-Allow-Methods": "POST, OPTIONS",
         "Access-Control-Allow-Headers": "Content-Type, Authorization, apikey, x-client-info",
+        "Vary": "Origin",
       },
     });
   }
 
   const corsHeaders = {
-    "Access-Control-Allow-Origin":  "*",
+    "Access-Control-Allow-Origin":  allowOrigin,
+    "Vary": "Origin",
     "Content-Type": "application/json",
   };
 
