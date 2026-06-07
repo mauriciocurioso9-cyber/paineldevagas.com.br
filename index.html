@@ -439,7 +439,7 @@ td.bold { font-weight: 700; color: var(--white); }
 }
 .ai-result-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.15em; color: var(--gray-300); }
 .ai-result-divider { border: none; border-top: 1px solid #333; margin: 24px 0; }
-.ai-report { font-size: 13px; line-height: 1.7; color: var(--gray-100); }
+.ai-report { font-size: 13px; line-height: 1.7; color: #E8EEF5; }
 .ai-report h3 { font-family: 'Bebas Neue', sans-serif; font-size: 18px; color: var(--orange); letter-spacing: 0.05em; margin: 20px 0 8px; }
 .ai-report p { margin-bottom: 10px; }
 
@@ -1193,6 +1193,13 @@ td.bold { font-weight: 700; color: var(--white); }
 </style>
 <!-- Supabase JS client (CDN) -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<!-- PDF.js: extração de texto de PDFs no navegador (base de conhecimento e currículos) -->
+<script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@4.0.379/build/pdf.min.mjs" type="module"></script>
+<script type="module">
+  import * as pdfjsLib from 'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.0.379/build/pdf.min.mjs';
+  pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.0.379/build/pdf.worker.min.mjs';
+  window.pdfjsLib = pdfjsLib;
+</script>
 <!-- Configuração pública do projeto (preencha config.js) -->
 <script src="config.js"></script>
 </head>
@@ -2616,8 +2623,13 @@ td.bold { font-weight: 700; color: var(--white); }
 
         <!-- API Test -->
         <div style="background:#111;border:1px solid #222;padding:20px;border-radius:4px">
-          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.15em;color:var(--orange);margin-bottom:14px">🧪 Testar API de IA</div>
-          <div style="font-size:12px;color:#666;margin-bottom:12px">Envia uma chamada real ao provedor de IA e mede o tempo de resposta.</div>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+            <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.15em;color:var(--orange)">🧪 Testar e Monitorar IA</div>
+            <button class="btn btn-outline btn-sm" onclick="adminLoadAIHealth()" style="font-size:11px;padding:4px 10px">↻ Atualizar saúde</button>
+          </div>
+          <!-- Saúde da IA (auditoria das últimas 24h) -->
+          <div id="sa-ai-health" style="background:#0a0a0a;border:1px solid #2a2a2a;padding:12px;border-radius:4px;margin-bottom:12px;min-height:38px;color:#888;font-size:12px">Carregando saúde da IA…</div>
+          <div style="font-size:12px;color:#666;margin-bottom:12px">Executa uma chamada real ao provedor de IA e registra na auditoria.</div>
           <button class="btn btn-primary btn-sm" onclick="adminTestAPI()" id="sa-test-btn">Executar Teste →</button>
           <div id="sa-test-result" style="margin-top:14px;font-size:12px;display:none">
             <div style="background:#0a0a0a;border:1px solid #333;padding:12px;border-radius:4px;font-family:monospace;white-space:pre-wrap;line-height:1.6"></div>
@@ -3054,37 +3066,97 @@ const STATE = {
 // ================================================================
 // SUPABASE: CHAMADA À IA (segura — chave fica no servidor)
 // ================================================================
+// Gera um UUID v4 (para o id do candidato ser criado no cliente — evita depender de
+// INSERT...RETURNING, que o anon não pode ler por causa do RLS de SELECT em candidates).
+function _uuid() {
+  if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+    const r = Math.random() * 16 | 0;
+    return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
+  });
+}
+
+// Extrai texto de um PDF no navegador (até maxChars). Retorna '' se não for PDF, faltar a lib ou falhar.
+async function extrairTextoPDF(file, maxChars = 12000) {
+  try {
+    if (!file || !/\.pdf$/i.test(file.name || '') || !window.pdfjsLib) return '';
+    const buf = await file.arrayBuffer();
+    const pdf = await window.pdfjsLib.getDocument({ data: buf }).promise;
+    let txt = '';
+    for (let i = 1; i <= pdf.numPages; i++) {
+      const page = await pdf.getPage(i);
+      const content = await page.getTextContent();
+      txt += content.items.map(it => it.str).join(' ') + '\n';
+      if (txt.length >= maxChars) break;
+    }
+    return txt.replace(/[ \t]+/g, ' ').replace(/\n{2,}/g, '\n').trim().slice(0, maxChars);
+  } catch (e) {
+    console.warn('[extrairTextoPDF]', e);
+    return '';
+  }
+}
+
+// ================================================================
+// BIBLIOTECA GLOBAL — referência metodológica destilada (1x) dos 5 PDFs.
+// Injetada nos prompts de geração de questões e avaliação de candidatos,
+// para a IA "raciocinar" guiada pelos métodos sem reler os documentos.
+// Fontes: Manual de Contratação, Manual de Negócios e Planejamento
+// Estratégico (#CabeçaDeDono / Rony Meisler); DISC (Marston/IBC); O*NET.
+// ================================================================
+const REFERENCIA_GLOBAL = `REFERÊNCIA METODOLÓGICA (Biblioteca Global RecrutadorIA) — use como base:
+
+1) CONTRATAÇÃO #CABEÇA DE DONO: Contratar não é preencher vaga, é trazer alguém para a CULTURA (cultura é o que se pratica, não o que se declara). Comece pelo PROBLEMA que a vaga resolve, não pelo cargo; defina entregáveis de 90 dias mensuráveis; separe MUST HAVE (essencial) de NICE TO HAVE (desejável). FIT CULTURAL vem antes de currículo — currículo conta o passado, fit aponta o futuro; técnica não compensa comportamento que corrói o time. Avalie COMPORTAMENTO real (como a pessoa pensa e age), não respostas prontas: decisões difíceis/impopulares, maior erro e o que aprendeu, como lida com conflito e feedback.
+
+2) MENTALIDADE DE DONO (2º filtro): faz muito com pouco; resolve em vez de reclamar (chega com solução); pensa no todo (não terceiriza culpa); vive a experiência do cliente; tem atitude antes de ter 100% de certeza; age como dono do resultado.
+
+3) PERFIL DISC (Marston): EXECUTOR (D/Dominância): foco em resultado, decisão rápida, direto, assume riscos. COMUNICADOR (I/Influência): pessoas, persuasão, entusiasmo, otimismo. PLANEJADOR (S/Estabilidade): consistência, cooperação, paciência, lealdade. ANALISTA (C/Conformidade): precisão, regras, qualidade, cautela. Perfis costumam ser combinações (ex.: D/I); use para entender estilo, ritmo e tomada de decisão — e aderência ao papel e à equipe.
+
+4) ADERÊNCIA TÉCNICA (O*NET): cruze os requisitos da vaga (must have) com evidências reais do candidato em Habilidades, Conhecimentos, Atividades de trabalho, Contexto e Experiência/formação.
+
+5) NEGÓCIO/ESTRATÉGIA #CABEÇA DE DONO: valorize foco no cliente, prioridade e renúncia (foco), execução disciplinada e alinhamento ao PROPÓSITO, VALORES e posicionamento da empresa.
+
+OBJETIVO CENTRAL: medir a ADERÊNCIA do candidato ÀQUELA empresa específica em duas dimensões — CULTURAL (propósito e valores) e TÉCNICA (requisitos da vaga). O diferencial é identificar quem tem mais fit com esta empresa, não o "melhor" candidato genérico.`;
+
 async function callAI(prompt, maxTokens, onSuccess, onError, extraBody) {
   if (DEMO_MODE) {
     // Em modo demo simula delay e retorna texto vazio para fallbacks locais
     setTimeout(() => onError && onError('Modo demo — configure Supabase em config.js'), 400);
     return;
   }
-  try {
-    const { data, error } = await _sb.functions.invoke(
-      RECRUTADOR_CONFIG.AI_FUNCTION_NAME,
-      { body: { prompt, max_tokens: maxTokens || 1200, ...(extraBody || {}) } }
-    );
-    if (error) {
-      // Tenta extrair o detalhe do body da resposta de erro
-      let detail = error.message || 'Erro na Edge Function';
-      try {
-        const ctx = error.context;
-        if (ctx) {
-          const body = typeof ctx.json === 'function' ? await ctx.json() : (typeof ctx === 'object' ? ctx : null);
-          if (body?.detail) detail = body.detail;
-          else if (body?.error) detail = body.error;
-        }
-      } catch(_) {}
-      console.error('[callAI] Detalhe do erro:', detail);
-      throw new Error(detail);
+  // Resiliência: até 3 tentativas com backoff para falhas transitórias (rede/cota momentânea).
+  const MAX_ATTEMPTS = 3;
+  let lastErr = 'Erro desconhecido';
+  for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+    try {
+      const { data, error } = await _sb.functions.invoke(
+        RECRUTADOR_CONFIG.AI_FUNCTION_NAME,
+        { body: { prompt, max_tokens: maxTokens || 1200, ...(extraBody || {}) } }
+      );
+      if (error) {
+        let detail = error.message || 'Erro na Edge Function';
+        try {
+          const ctx = error.context;
+          if (ctx) {
+            const body = typeof ctx.json === 'function' ? await ctx.json() : (typeof ctx === 'object' ? ctx : null);
+            if (body?.detail) detail = body.detail;
+            else if (body?.error) detail = body.error;
+          }
+        } catch(_) {}
+        throw new Error(detail);
+      }
+      if (data?.error) throw new Error(data.detail || data.error);
+      onSuccess && onSuccess(data.text || '', data.provider || '');
+      return; // sucesso
+    } catch (err) {
+      lastErr = (err && err.message) ? err.message : String(err);
+      console.warn(`[callAI] tentativa ${attempt}/${MAX_ATTEMPTS} falhou: ${lastErr}`);
+      if (attempt < MAX_ATTEMPTS) {
+        await new Promise(r => setTimeout(r, 700 * attempt)); // backoff: 0.7s, 1.4s
+      }
     }
-    if (data?.error) throw new Error(data.detail || data.error);
-    onSuccess && onSuccess(data.text || '');
-  } catch (err) {
-    console.error('[callAI]', err);
-    onError && onError(err.message);
   }
+  console.error('[callAI] falhou após', MAX_ATTEMPTS, 'tentativas:', lastErr);
+  onError && onError(lastErr);
 }
 
 function parseAIJson(text) {
@@ -4112,6 +4184,8 @@ async function uploadKBDoc() {
 
   showSpinner('kb-spinner','kb-btn-text','');
   const fileSizeKB = (STATE.kbFile.size/1024).toFixed(0) + 'KB';
+  // Layer 2: extrai o TEXTO do PDF para a IA usar (regra automática para todo upload)
+  const kbContent = await extrairTextoPDF(STATE.kbFile, 8000);
 
   if (DEMO_MODE) {
     setTimeout(() => {
@@ -4140,7 +4214,8 @@ async function uploadKBDoc() {
 
   const { error: dbErr } = await _sb.from('kb_documents').insert({
     company_id: STATE.company.id, title, category,
-    file_name: STATE.kbFile.name, file_size: fileSizeKB, storage_path: path
+    file_name: STATE.kbFile.name, file_size: fileSizeKB, storage_path: path,
+    content: kbContent || null
   });
   hideSpinner('kb-spinner','kb-btn-text','⬆️ Enviar Documento');
   if (dbErr) { showAlert('kb-alert','error', dbErr.message); return; }
@@ -4516,8 +4591,26 @@ async function saveJobAndGenerateQs() {
 
   showSpinner('cj-save-spinner','cj-save-btn-text','Gerando com IA...');
 
+  // Layer 2: base de conhecimento da empresa (texto extraído dos PDFs do recrutador).
+  // O recrutador é autenticado → RLS permite ler a KB da própria empresa.
+  let kbCtx = '';
+  if (!DEMO_MODE && STATE.company?.id) {
+    try {
+      const { data: kb } = await _sb.from('kb_documents')
+        .select('title, content').eq('company_id', STATE.company.id)
+        .order('created_at', { ascending: false }).limit(4);
+      if (kb?.length) {
+        kbCtx = kb.filter(d => d.content && d.content.trim())
+                  .map(d => `### ${d.title}\n${String(d.content).slice(0, 1200)}`)
+                  .join('\n\n');
+      }
+    } catch(e) { console.warn('[saveJobAndGenerateQs] KB fetch:', e); }
+  }
+
   const prompt = [
     'Você é especialista em recrutamento comportamental. Gere questionários personalizados.',
+    REFERENCIA_GLOBAL,
+    kbCtx ? `BASE DE CONHECIMENTO DA EMPRESA (use para personalizar as questões):\n${kbCtx}` : '',
     `VAGA: ${title} (${seniority})`, `PROBLEMA: ${problem}`,
     activities ? `ATIVIDADES: ${activities}` : '',
     attitudes  ? `ATITUDES: ${attitudes}`    : '',
@@ -4563,7 +4656,7 @@ async function saveJobAndGenerateQs() {
     STATE.createdJobId = jobId;
   };
 
-  callAI(prompt, 5000, (text) => {
+  callAI(prompt, 8000, (text) => {
     const parsed = parseAIJson(text);
     let q1 = [], q2 = [];
     if (parsed?.q1?.length >= 5) {
@@ -4583,14 +4676,21 @@ async function saveJobAndGenerateQs() {
     afterAI(q1, q2);
   }, () => {
     afterAI(fallbackQs.q1, fallbackQs.q2);
-    showToast('IA indisponível — questões geradas localmente. Configure a chave de API.','error');
-  });
+    showToast('IA indisponível — questões geradas localmente. Tente recriar a vaga.','error');
+  }, { kind: 'gerar_questoes_vaga', json: true });
 }
 
 function gerarQuestoesLocais(title, mustHave) {
+  // Fallback robusto: 20 Q1 + 10 Q2 (embaralhadas), em vez do mini-conjunto de 5.
+  const shuffle = a => [...a].sort(() => Math.random() - 0.5);
   return {
-    q1: DEMO_Q1.map(q => ({ question_text: q.question_text, options: q.options, correct_option: q.correct_option, category: q.category })),
-    q2: DEMO_Q2.map(q => ({ question_text: q.question_text, category: q.category }))
+    q1: shuffle(AS_FALLBACK_Q).slice(0, 20).map(q => ({
+      question_text: q.question_text,
+      options: (q.options || []).map(o => String(o).replace(/^[A-Da-d]\)\s*/, '').trim()),
+      correct_option: q.correct_option,
+      category: q.category
+    })),
+    q2: shuffle(CF_FALLBACK_Q2).slice(0, 10).map(q => ({ question_text: q.question_text, category: q.category }))
   };
 }
 
@@ -4822,6 +4922,7 @@ async function adminLoadDashboard() {
   if (provSel) provSel.value = stats.ai_provider || 'anthropic';
   const modelInp = document.getElementById('sa-model-input');
   if (modelInp) modelInp.value = stats.ai_model || '';
+  adminLoadAIHealth(); // carrega a saúde/auditoria da IA
 }
 
 async function adminLoadCompanies() {
@@ -4877,21 +4978,46 @@ async function adminTestAPI() {
   const t0 = Date.now();
   callAI(
     'Responda apenas com as palavras: SISTEMA OK — RecrutadorIA funcionando.',
-    100,
-    (text) => {
+    600,
+    (text, provider) => {
       const ms = Date.now() - t0;
-      const prov = document.getElementById('sa-provider-select')?.value || 'anthropic';
       resultEl.querySelector('div').textContent =
-        `✅ SUCESSO\nProvedor: ${prov.toUpperCase()}\nResposta: ${text.trim()}\nTempo: ${ms}ms`;
+        `✅ SUCESSO\nProvedor real: ${(provider || '—').toUpperCase()}\nResposta: ${text.trim()}\nTempo: ${ms}ms`;
       btn.disabled = false; btn.textContent = 'Executar Teste →';
+      adminLoadAIHealth(); // atualiza o painel de saúde após o teste
     },
     (err) => {
       const ms = Date.now() - t0;
       resultEl.querySelector('div').textContent =
         `❌ ERRO\nMensagem: ${err}\nTempo: ${ms}ms`;
       btn.disabled = false; btn.textContent = 'Executar Teste →';
-    }
+      adminLoadAIHealth();
+    },
+    { kind: 'teste_admin' }
   );
+}
+
+// Carrega e exibe a saúde da IA (estatísticas das últimas 24h) no painel admin.
+async function adminLoadAIHealth() {
+  const el = document.getElementById('sa-ai-health');
+  if (!el || !SA.pwd) return;
+  try {
+    const { data, error } = await _sb.rpc('admin_ai_stats', { p_password: SA.pwd });
+    if (error || !data || data.error) { el.innerHTML = '<span style="color:#888">Saúde indisponível.</span>'; return; }
+    const total = data.total_24h || 0, ok = data.ok_24h || 0, fail = data.fail_24h || 0;
+    const taxa = total ? Math.round((ok / total) * 100) : null;
+    const cor = taxa === null ? '#888' : taxa >= 95 ? 'var(--green)' : taxa >= 80 ? '#FFC107' : 'var(--red)';
+    const lastErr = data.last_error;
+    el.innerHTML = `
+      <div style="display:flex;gap:18px;flex-wrap:wrap;align-items:center;font-size:12px">
+        <div><span style="font-size:22px;font-weight:700;color:${cor}">${taxa === null ? '—' : taxa + '%'}</span> <span style="color:#888">sucesso (24h)</span></div>
+        <div style="color:#888">Chamadas: <b style="color:#ccc">${total}</b> · OK: <b style="color:var(--green)">${ok}</b> · Falhas: <b style="color:${fail ? 'var(--red)' : '#ccc'}">${fail}</b></div>
+        <div style="color:#888">Latência média: <b style="color:#ccc">${data.avg_latency_ms ?? '—'} ms</b></div>
+      </div>
+      ${lastErr && lastErr.error ? `<div style="margin-top:8px;font-size:11px;color:#b91c1c">Último erro (${sanitize(lastErr.kind || '—')}): ${sanitize(String(lastErr.error)).slice(0,180)}</div>` : ''}`;
+  } catch(e) {
+    el.innerHTML = '<span style="color:#888">Saúde indisponível.</span>';
+  }
 }
 
 async function adminSaveProvider() {
@@ -5228,6 +5354,8 @@ async function cfNextStep(step) {
     // Upload do currículo (se houver arquivo)
     if (!DEMO_MODE && STATE.cfFile) {
       try {
+        // Análise de currículo: extrai o TEXTO do PDF p/ a IA avaliar (regra automática)
+        STATE.cfResumeText = await extrairTextoPDF(STATE.cfFile, 6000);
         const ext  = STATE.cfFile.name.split('.').pop().toLowerCase();
         const path = `${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
         const { data: upData, error: upErr } = await _sb.storage
@@ -5243,8 +5371,12 @@ async function cfNextStep(step) {
     hideSpinner('cf-s2-spinner','cf-s2-btn','Iniciar Processo →');
     if (STATE.cfSpontaneous) {
       cfShowJobsPanel(); // mostra vagas + opção espontânea
+    } else if (STATE.cfQ1Questions.length >= 10 && STATE.cfQ2Questions.length >= 5) {
+      // Usa as questões já salvas da vaga (geradas na criação, com KB + marca + referência
+      // global). O anti-cola embaralha por candidato. Economiza tokens (sem regenerar).
+      cfShowReadyScreen();
     } else {
-      // Sempre gera 20 Q1 + 10 Q2 via IA (novas questões a cada processo seletivo)
+      // Vaga sem questões salvas (legado/incompleto): gera via IA como fallback.
       cfGenerateKBQuestionsAndShowWarning();
     }
   }
@@ -5299,6 +5431,39 @@ function cfRedistributeAnswers(q1List) {
     const newOptions = newRaw.map((o, idx) => `${String.fromCharCode(65 + idx)}) ${o}`);
     return { ...q, options: newOptions, correct_option: String.fromCharCode(65 + targetIdx) };
   });
+}
+
+// ── ANTI-COLA ───────────────────────────────────────────────────
+// Embaralha (aleatório por candidato) a ORDEM das questões e a ORDEM
+// das alternativas de cada Q1, atualizando o gabarito. Assim, dois
+// candidatos da mesma vaga não recebem a mesma sequência/posições.
+function _shuffleArray(arr) {
+  const a = (arr || []).slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function cfShuffleForAntiCola() {
+  // Q1: embaralha alternativas (recalculando o gabarito) e a ordem das questões
+  STATE.cfQ1Questions = _shuffleArray((STATE.cfQ1Questions || []).map(q => {
+    // Remove prefixos "A) " caso existam — o rótulo é desenhado pela interface
+    const opts = (q.options || []).map(o => String(o).replace(/^[A-Da-d]\)\s*/, '').trim());
+    if (opts.length < 2) return q;
+    const correctIdx = q.correct_option ? (q.correct_option.charCodeAt(0) - 65) : 0;
+    const idxOrder = _shuffleArray(opts.map((_, i) => i));   // nova ordem dos índices
+    const newOptions = idxOrder.map(i => opts[i]);
+    let newCorrectIdx = idxOrder.indexOf(correctIdx);
+    if (newCorrectIdx < 0) newCorrectIdx = 0;
+    return { ...q, options: newOptions, correct_option: String.fromCharCode(65 + newCorrectIdx) };
+  }));
+  // Q2: embaralha apenas a ordem das questões (são abertas)
+  STATE.cfQ2Questions = _shuffleArray(STATE.cfQ2Questions || []);
+  // Reinicia os ponteiros do quiz
+  STATE.cfQ1Current = 0;
+  STATE.cfQ2Current = 0;
 }
 
 async function cfGenerateKBQuestionsAndShowWarning() {
@@ -5363,6 +5528,9 @@ async function cfGenerateKBQuestionsAndShowWarning() {
   const prompt = `Você é especialista em recrutamento comportamental com foco em cultura organizacional.
 Identificador único desta geração: ${genSeed} — gere questões DIFERENTES de qualquer geração anterior, variando temas, situações e contextos.
 
+${REFERENCIA_GLOBAL}
+
+CONTEXTO DESTA EMPRESA (priorize para personalizar):
 ${brandCtx}
 
 BASE DE CONHECIMENTO DA EMPRESA:
@@ -5500,7 +5668,7 @@ REGRAS RÍGIDAS:
     markStep(2, false);
     markStep(3, false);
     setTimeout(() => cfGoTo(3), 1000);
-  });
+  }, { kind: 'gerar_questoes_candidato', json: true });
 }
 
 // ── Ranking por IA (executado após salvar respostas) ───────────
@@ -5549,10 +5717,18 @@ function cfAIRankCandidate(candidateId, scoreQ1, scoreQ2, scoreFinal, disc, rec)
         if (ba) brandCtx = `Empresa — Valores: ${ba.valores||''}. Propósito: ${ba.proposito||''}.`;
       }
 
+      const resumeCtx = (STATE.cfResumeText && STATE.cfResumeText.trim())
+        ? `CURRÍCULO DO CANDIDATO (texto extraído — avalie a aderência TÉCNICA aos requisitos da vaga, no espírito O*NET):\n${STATE.cfResumeText.slice(0, 4000)}`
+        : 'CURRÍCULO: não enviado ou sem texto extraível.';
+
       const prompt = `Você é especialista em recrutamento comportamental. Analise o desempenho do candidato.
+
+${REFERENCIA_GLOBAL}
 
 ${jobCtx}
 ${brandCtx}
+
+${resumeCtx}
 
 SCORES CALCULADOS:
 - Q1 (Objetivas): ${scoreQ1}/100 (${STATE.cfQ1Questions.length} questões)
@@ -5567,16 +5743,17 @@ ${q1Summary}
 AMOSTRA Q2 (respostas):
 ${q2Summary}
 
-Gere uma análise executiva para o recrutador com:
-1. Score final ajustado pela IA (0-100, considere profundidade das respostas Q2)
+Gere uma análise executiva para o recrutador, medindo a ADERÊNCIA do candidato A ESTA empresa (cultural: propósito/valores; técnica: requisitos da vaga e currículo):
+1. Score final ajustado pela IA (0-100, pondere respostas Q2 e aderência do currículo)
 2. Perfil DISC confirmado (D, I, S, C ou combinação)
 3. Recomendação: CONTRATAR, RISCO CALCULADO ou NÃO CONTRATAR
 4. Pontos fortes observados (máx 3)
 5. Pontos de atenção (máx 2)
 6. Resumo executivo (2-3 frases para o recrutador)
+7. Análise do currículo: aderência técnica aos requisitos (1-2 frases; se não houver currículo, diga isso)
 
 Responda SOMENTE em JSON minificado:
-{"score":85,"disc":"D/I","rec":"CONTRATAR","pontos_fortes":["item1","item2","item3"],"pontos_atencao":["item1","item2"],"resumo":"texto"}`;
+{"score":85,"disc":"D/I","rec":"CONTRATAR","pontos_fortes":["item1","item2","item3"],"pontos_atencao":["item1","item2"],"resumo":"texto","analise_curriculo":"texto"}`;
 
       callAI(prompt, 1800, async (text) => {
         const parsed = parseAIJson(text);
@@ -5596,6 +5773,7 @@ Responda SOMENTE em JSON minificado:
           resumo:         parsed.resumo || '',
           pontos_fortes:  parsed.pontos_fortes || [],
           pontos_atencao: parsed.pontos_atencao || [],
+          analise_curriculo: parsed.analise_curriculo || '',
           gerado_em:      new Date().toISOString(),
           q2_answers:     q2Answers
         };
@@ -5616,7 +5794,7 @@ Responda SOMENTE em JSON minificado:
       }, (err) => {
         console.warn('[cfAIRankCandidate] AI error:', err);
         resolve(false);
-      });
+      }, { kind: 'avaliar_candidato', json: true });
     } catch(e) {
       console.warn('[cfAIRankCandidate]', e);
       resolve(false);
@@ -5903,6 +6081,7 @@ async function cfStartQuiz() {
     } catch(e) { console.warn('[cfStartQuiz] job fetch error:', e); }
   }
 
+  cfShuffleForAntiCola(); // anti-cola: ordem das questões + alternativas por candidato
   cfGoTo(4); // cf-s3 = Q1
   renderCFQ1();
   cfTimerStart(1800); // 30 minutos
@@ -6082,13 +6261,17 @@ async function cfFinalizarProcesso(timedOut) {
         resposta:  STATE.cfQ2Answers[q.id] || ''
       }));
 
-      const { data: cand, error: insertErr } = await _sb.from('candidates').insert({
+      // id gerado no cliente: insert SEM .select() (sem RETURNING) — anon não tem SELECT em candidates
+      const newId = _uuid();
+      const { error: insertErr } = await _sb.from('candidates').insert({
+        id:             newId,
         job_id:         STATE.cfJobId,
         company_id:     STATE.cfJobCompanyId,
         full_name:      name,
         email:          email,
         job_title:      jobTitle,
         resume_url:     STATE.cfResumeUrl || null,
+        resume_text:    STATE.cfResumeText || null,
         score_q1:       scoreQ1,
         score_q2:       scoreQ2,
         score_resume:   STATE.cfResumeUrl ? 75 : 70,
@@ -6097,13 +6280,13 @@ async function cfFinalizarProcesso(timedOut) {
         recommendation: rec,
         status:         'COMPLETED',
         ai_report:      { q2_answers: q2Snapshot } // respostas dissertativas acessíveis ao recrutador
-      }).select('id').single();
+      });
 
       if (insertErr) {
         console.error('[cfFinalizarProcesso] INSERT error:', insertErr);
         showAlert('cf-s5-alert', 'error', 'Erro ao salvar. Tente novamente.');
       } else {
-        STATE.cfCandidateId = cand?.id;
+        STATE.cfCandidateId = newId;
 
         // Mostra a tela de sucesso primeiro — candidato sabe que terminou
         if (!STATE.cfFromJobsFlow) cfGoTo(6);
