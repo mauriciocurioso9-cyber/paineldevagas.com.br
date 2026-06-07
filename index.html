@@ -4573,7 +4573,7 @@ function generateClarityQuestions() {
     document.getElementById('cj-step-2').classList.add('active');
   }, (err) => {
     hideSpinner('cj-spinner','cj-btn-text','✨ Gerar Diagnóstico com IA');
-    showAlert('cj-alert','error','Erro na IA: ' + (err||'Configure a chave de API.'));
+    showAlert('cj-alert','error','A IA está temporariamente indisponível (limite ou instabilidade do provedor). Tente novamente em alguns instantes.');
   });
 }
 
@@ -4847,7 +4847,7 @@ Responda SOMENTE em JSON minificado (uma única linha, sem markdown):
     }
   }, (err) => {
     hideSpinner('brand-spinner','brand-btn-text','🧠 Analisar Marca com IA');
-    showAlert('brand-alert','error','Erro na IA: ' + (err || 'Configure a chave de API.'));
+    showAlert('brand-alert','error','A IA está temporariamente indisponível. Tente novamente em alguns instantes.');
   }, { fetch_urls: fetchUrls });
 }
 
@@ -6681,41 +6681,44 @@ DESENVOLVIMENTO: ${weaknesses.join(', ') || '—'}
 Gere avaliação completa. Responda SOMENTE em JSON minificado (sem markdown):
 {"perfil":"2 frases sobre o perfil profissional na área declarada","comportamento":"2 frases sobre mentalidade e comportamento com base nas respostas","cargos":"4 cargos recomendados separados por vírgula","acao":"2 ações de desenvolvimento separadas por ponto e vírgula","conclusao":"1 frase motivadora e honesta"}`;
 
+  // Análise local de reserva — usada se a IA falhar. NUNCA mostramos erro técnico ao usuário.
+  const buildLocalAnalysis = () => ({
+    perfil: `Perfil voltado para ${area || 'sua área'}, com destaque em ${strengths.slice(0,3).join(', ') || 'competências comportamentais'}${disc ? ` — tendência comportamental ${disc}` : ''}.`,
+    comportamento: `As respostas indicam pontos fortes em ${strengths.join(', ') || '—'} e oportunidades de desenvolvimento em ${weaknesses.join(', ') || '—'}.`,
+    cargos: '',
+    acao: weaknesses.length ? `Foque em evoluir: ${weaknesses.join('; ')}.` : 'Mantenha a consistência nos seus pontos fortes.',
+    conclusao: 'Resultado calculado a partir das suas respostas. A análise detalhada por IA será complementada assim que o serviço estiver disponível.'
+  });
+
+  const renderDeep = (data, viaIA) => {
+    const deep = document.getElementById('as-deep-analysis');
+    if (!deep) return;
+    deep.innerHTML = `
+      <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.15em;color:rgba(255,255,255,0.4);margin-bottom:12px">
+        ${viaIA ? '🤖 Avaliação Completa pela IA' : '📋 Avaliação do Perfil'}
+      </div>
+      <div style="font-size:13px;line-height:1.85;color:rgba(255,255,255,0.85)">
+        ${data.perfil ? `<div style="margin-bottom:14px"><span style="color:#93C5FD;font-weight:700">Perfil Profissional:</span><br>${sanitize(data.perfil)}</div>` : ''}
+        ${data.comportamento ? `<div style="margin-bottom:14px"><span style="color:#6EE7B7;font-weight:700">Avaliação Comportamental:</span><br>${sanitize(data.comportamento)}</div>` : ''}
+        ${data.cargos ? `<div style="margin-bottom:14px"><span style="color:#FCD34D;font-weight:700">Cargos Recomendados:</span><br>${sanitize(data.cargos)}</div>` : ''}
+        ${data.acao ? `<div style="margin-bottom:14px"><span style="color:#F9A8D4;font-weight:700">Para Desenvolver:</span><br>${sanitize(data.acao)}</div>` : ''}
+        ${data.conclusao ? `<div style="margin-top:14px;padding:12px;background:rgba(255,255,255,0.05);font-style:italic;border-left:2px solid rgba(255,255,255,0.2)">${sanitize(data.conclusao)}</div>` : ''}
+      </div>
+      ${viaIA ? '' : '<div style="margin-top:10px;font-size:11px;color:rgba(255,255,255,0.4)">Análise detalhada por IA temporariamente indisponível — exibindo avaliação a partir das suas respostas.</div>'}`;
+    STATE.asCargos   = data.cargos || STATE.asCargos || '';
+    STATE.asAIResult = data;
+  };
+
   callAI(prompt, 2500, (text) => {
     const parsed = parseAIJson(text);
-    const deep   = document.getElementById('as-deep-analysis');
-
-    if (deep) {
-      if (parsed) {
-        deep.innerHTML = `
-          <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.15em;color:rgba(255,255,255,0.4);margin-bottom:12px">
-            🤖 Avaliação Completa pela IA
-          </div>
-          <div style="font-size:13px;line-height:1.85;color:rgba(255,255,255,0.85)">
-            ${parsed.perfil ? `<div style="margin-bottom:14px"><span style="color:#93C5FD;font-weight:700">Perfil Profissional:</span><br>${sanitize(parsed.perfil)}</div>` : ''}
-            ${parsed.comportamento ? `<div style="margin-bottom:14px"><span style="color:#6EE7B7;font-weight:700">Avaliação Comportamental:</span><br>${sanitize(parsed.comportamento)}</div>` : ''}
-            ${parsed.cargos ? `<div style="margin-bottom:14px"><span style="color:#FCD34D;font-weight:700">Cargos Recomendados:</span><br>${sanitize(parsed.cargos)}</div>` : ''}
-            ${parsed.acao ? `<div style="margin-bottom:14px"><span style="color:#F9A8D4;font-weight:700">Para Desenvolver:</span><br>${sanitize(parsed.acao)}</div>` : ''}
-            ${parsed.conclusao ? `<div style="margin-top:14px;padding:12px;background:rgba(255,255,255,0.05);font-style:italic;border-left:2px solid rgba(255,255,255,0.2)">${sanitize(parsed.conclusao)}</div>` : ''}
-          </div>`;
-        // Salva resultado completo no STATE (usado na exportação PDF)
-        STATE.asCargos   = parsed.cargos || '';
-        STATE.asAIResult = parsed;
-      } else {
-        deep.innerHTML = `<div style="font-size:12px;color:rgba(255,255,255,0.5)">Análise IA indisponível — configure a chave de API.</div>`;
-      }
-    }
-
-    // Somente APÓS a análise IA: exibe opção de ver vagas
+    renderDeep(parsed || buildLocalAnalysis(), !!parsed);
     document.getElementById('as-post-actions')?.classList.remove('hidden');
     window.scrollTo(0, document.body.scrollHeight);
-
-  }, (err) => {
-    const deep = document.getElementById('as-deep-analysis');
-    if (deep) deep.innerHTML = `<div style="font-size:12px;color:rgba(255,255,255,0.5)">IA indisponível: ${sanitize(err || 'configure a chave de API')}</div>`;
-    // Mesmo com erro na IA, libera o botão de vagas
+  }, () => {
+    // Falha da IA (ex.: cota): mostra a reserva local, sem erro técnico na tela.
+    renderDeep(buildLocalAnalysis(), false);
     document.getElementById('as-post-actions')?.classList.remove('hidden');
-  });
+  }, { kind: 'analise_perfil', json: true });
 }
 
 // ── Análise de LinkedIn com base no perfil comportamental ───────
@@ -6826,7 +6829,7 @@ Responda SOMENTE em JSON minificado:
 
   }, (err) => {
     hideSpinner('as-linkedin-spinner','as-linkedin-btn-text','Analisar meu LinkedIn →');
-    if (resultEl) resultEl.innerHTML = `<div style="font-size:12px;color:#ef4444">Erro: ${sanitize(err || 'IA indisponível')}. Tente novamente.</div>`;
+    if (resultEl) resultEl.innerHTML = `<div style="font-size:12px;color:rgba(255,255,255,0.6)">A análise por IA está temporariamente indisponível. Tente novamente em alguns instantes.</div>`;
   });
 }
 
