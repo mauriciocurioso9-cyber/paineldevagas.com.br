@@ -1240,6 +1240,7 @@ td.bold { font-weight: 700; color: var(--white); }
     </div>
 
     <div class="landing-nav-links">
+      <a href="/Manual_RecrutadorIA.pdf" target="_blank" rel="noopener" class="btn btn-outline btn-sm">📖 Como usar</a>
       <button class="btn btn-outline btn-sm" onclick="showPage('assessment')">📊 Análise de Perfil</button>
       <button class="btn btn-outline btn-sm" onclick="iniciarCandidaturaEspontanea()">🧑‍💼 Sou Candidato</button>
       <button id="recruiter-access-btn" class="btn btn-primary btn-sm" onclick="acessarAreaRecrutador()">🔐 Área do Recrutador</button>
@@ -1374,6 +1375,8 @@ td.bold { font-weight: 700; color: var(--white); }
       <a onclick="showPage('privacidade')" style="cursor:pointer;color:var(--ld-gray-5)">Política de Privacidade</a>
       &nbsp;·&nbsp;
       <a onclick="showPage('termos')" style="cursor:pointer;color:var(--ld-gray-5)">Termos de Uso</a>
+      &nbsp;·&nbsp;
+      <a href="/Manual_RecrutadorIA.pdf" target="_blank" rel="noopener" style="cursor:pointer;color:var(--ld-gray-5)">📖 Manual de Uso</a>
     </p>
     <p>© 2026 RecrutadorIA · paineldevagas.com.br · Powered by Claude AI</p>
   </footer>
@@ -1632,7 +1635,9 @@ td.bold { font-weight: 700; color: var(--white); }
             <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.12em;color:var(--gray-300)">Empresa</div>
             <div id="topbar-company-name" style="font-size:13px;font-weight:700;color:var(--black)">—</div>
           </div>
-          <div class="topbar-actions" id="topbar-actions"></div>
+          <div class="topbar-actions" id="topbar-actions">
+            <a href="/Manual_RecrutadorIA.pdf" target="_blank" rel="noopener" class="btn btn-outline btn-sm" style="font-size:11px;padding:5px 12px">📖 Ajuda</a>
+          </div>
         </div>
       </div>
       <div class="content">
@@ -2614,6 +2619,10 @@ td.bold { font-weight: 700; color: var(--white); }
           <div id="sa-stat-completed" style="font-family:'Bebas Neue',sans-serif;font-size:40px;color:#eab308">—</div>
         </div>
         <div class="sa-stat-card" style="background:#111;border:1px solid #222;padding:18px;border-radius:4px">
+          <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.15em;color:#555;margin-bottom:8px">Análises de Perfil</div>
+          <div id="sa-stat-profiles" style="font-family:'Bebas Neue',sans-serif;font-size:40px;color:#a78bfa">—</div>
+        </div>
+        <div class="sa-stat-card" style="background:#111;border:1px solid #222;padding:18px;border-radius:4px">
           <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.15em;color:#555;margin-bottom:8px">Provedor IA</div>
           <div id="sa-stat-provider" style="font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--orange);margin-top:8px">—</div>
         </div>
@@ -2671,13 +2680,24 @@ td.bold { font-weight: 700; color: var(--white); }
       </div>
 
       <!-- Empresas Cadastradas -->
-      <div style="background:#111;border:1px solid #222;padding:20px;border-radius:4px">
+      <div style="background:#111;border:1px solid #222;padding:20px;border-radius:4px;margin-bottom:28px">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
           <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.15em;color:var(--orange)">🏢 Empresas Cadastradas</div>
           <button class="btn btn-outline btn-sm" style="border-color:#333;color:#888" onclick="adminLoadCompanies()">↻ Atualizar</button>
         </div>
         <div id="sa-companies-table" style="overflow-x:auto">
           <div style="font-size:12px;color:#555;padding:20px;text-align:center">Clique em "Atualizar" para carregar</div>
+        </div>
+      </div>
+
+      <!-- Análises de Perfil -->
+      <div style="background:#111;border:1px solid #222;padding:20px;border-radius:4px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.15em;color:#a78bfa">📊 Análises de Perfil (Assessment público)</div>
+          <button class="btn btn-outline btn-sm" style="border-color:#333;color:#888" onclick="adminLoadProfileAnalyses()">↻ Atualizar</button>
+        </div>
+        <div id="sa-profiles-table" style="overflow-x:auto">
+          <div style="font-size:12px;color:#555;padding:20px;text-align:center">Carregando…</div>
         </div>
       </div>
 
@@ -4923,6 +4943,47 @@ async function adminLoadDashboard() {
   const modelInp = document.getElementById('sa-model-input');
   if (modelInp) modelInp.value = stats.ai_model || '';
   adminLoadAIHealth(); // carrega a saúde/auditoria da IA
+  adminLoadProfileAnalyses(); // carrega análises de perfil
+}
+
+async function adminLoadProfileAnalyses() {
+  const el = document.getElementById('sa-profiles-table');
+  if (!el) return;
+  el.innerHTML = '<div style="font-size:12px;color:#555;padding:20px;text-align:center">Carregando...</div>';
+  const { data } = await _sb.rpc('admin_list_profile_analyses', { p_password: SA.pwd });
+  const list = Array.isArray(data) ? data : [];
+  document.getElementById('sa-stat-profiles').textContent = list.length;
+  if (!list.length) {
+    el.innerHTML = '<div style="font-size:12px;color:#555;padding:20px;text-align:center">Nenhuma análise registrada ainda.</div>';
+    return;
+  }
+  el.innerHTML = `
+    <table style="width:100%;border-collapse:collapse;font-size:12px">
+      <thead>
+        <tr style="border-bottom:1px solid #222">
+          <th style="text-align:left;padding:8px 10px;color:#555;font-weight:600;text-transform:uppercase;font-size:9px;letter-spacing:0.1em">Nome</th>
+          <th style="text-align:left;padding:8px 10px;color:#555;font-weight:600;text-transform:uppercase;font-size:9px;letter-spacing:0.1em">E-mail</th>
+          <th style="text-align:left;padding:8px 10px;color:#555;font-weight:600;text-transform:uppercase;font-size:9px;letter-spacing:0.1em">Área</th>
+          <th style="text-align:center;padding:8px 10px;color:#555;font-weight:600;text-transform:uppercase;font-size:9px;letter-spacing:0.1em">Score</th>
+          <th style="text-align:center;padding:8px 10px;color:#555;font-weight:600;text-transform:uppercase;font-size:9px;letter-spacing:0.1em">DISC</th>
+          <th style="text-align:left;padding:8px 10px;color:#555;font-weight:600;text-transform:uppercase;font-size:9px;letter-spacing:0.1em">Data</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${list.map(p => {
+          const score = p.score || 0;
+          const scoreColor = score >= 80 ? '#22c55e' : score >= 65 ? 'var(--orange)' : '#ef4444';
+          return `<tr style="border-bottom:1px solid #1a1a1a">
+            <td style="padding:10px;font-weight:700;color:#fff">${sanitize(p.name||'—')}</td>
+            <td style="padding:10px;color:#888">${sanitize(p.email||'—')}</td>
+            <td style="padding:10px;color:#aaa">${sanitize(p.area||'—')}</td>
+            <td style="padding:10px;text-align:center;color:${scoreColor};font-weight:700">${score}%</td>
+            <td style="padding:10px;text-align:center;color:#a78bfa;font-weight:700">${sanitize(p.disc||'—')}</td>
+            <td style="padding:10px;color:#555">${p.created_at ? new Date(p.created_at).toLocaleDateString('pt-BR') : '—'}</td>
+          </tr>`;
+        }).join('')}
+      </tbody>
+    </table>`;
 }
 
 async function adminLoadCompanies() {
@@ -6714,11 +6775,33 @@ Gere avaliação completa. Responda SOMENTE em JSON minificado (sem markdown):
     renderDeep(parsed || buildLocalAnalysis(), !!parsed);
     document.getElementById('as-post-actions')?.classList.remove('hidden');
     window.scrollTo(0, document.body.scrollHeight);
+    saveProfileAnalysis();
   }, () => {
     // Falha da IA (ex.: cota): mostra a reserva local, sem erro técnico na tela.
     renderDeep(buildLocalAnalysis(), false);
     document.getElementById('as-post-actions')?.classList.remove('hidden');
+    saveProfileAnalysis();
   }, { kind: 'analise_perfil', json: true });
+}
+
+// ── Salva análise de perfil no banco (fire-and-forget) ───────────
+async function saveProfileAnalysis() {
+  try {
+    const r = STATE.asAIResult;
+    const aiText = r
+      ? [r.perfil, r.comportamento, r.cargos, r.acao, r.conclusao].filter(Boolean).join(' | ').slice(0, 2000)
+      : null;
+    await _sb.from('profile_analyses').insert({
+      name:        STATE.asName       || null,
+      email:       STATE.asEmail      || null,
+      area:        STATE.asArea       || null,
+      score:       STATE.asScore      || null,
+      disc:        STATE.asDisc       || null,
+      strengths:   STATE.asStrengths  || [],
+      weaknesses:  STATE.asWeaknesses || [],
+      ai_analysis: aiText,
+    });
+  } catch (_) { /* nunca bloqueia o usuário */ }
 }
 
 // ── Análise de LinkedIn com base no perfil comportamental ───────
